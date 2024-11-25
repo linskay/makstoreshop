@@ -1,8 +1,8 @@
 package ru.shop.makstore.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import ru.shop.makstore.model.Other;
-
-import java.util.List;
 
 public interface OtherService {
 
@@ -10,7 +10,7 @@ public interface OtherService {
 
     Other editOther(Other other);
 
-    void deleteOther(int id);
+    boolean deleteOther(int id);
 
-    List<Other> getOthers();
+    Page<Other> getOthers(Pageable pageable);
 }

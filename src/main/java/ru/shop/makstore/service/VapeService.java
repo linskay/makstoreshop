@@ -9,7 +9,7 @@ public interface VapeService {
 
     Vape editVape(Vape vape);
 
-    Vape deleteVape(Vape vape);
+    void deleteVape(int id);
 
     List<Vape> getAllVapes();
 }
