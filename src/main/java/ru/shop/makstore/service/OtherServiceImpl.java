@@ -1,12 +1,14 @@
 package ru.shop.makstore.service;
 
-import org.springframework.data.crossstore.ChangeSetPersister;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.stereotype.Service;
 import ru.shop.makstore.model.Other;
 import ru.shop.makstore.repositories.OtherRepository;
 
-import java.util.List;
 import java.util.Optional;
 
+@Service
 public class OtherServiceImpl implements OtherService {
     private final OtherRepository otherRepository;
 
@@ -22,26 +24,30 @@ public class OtherServiceImpl implements OtherService {
     @Override
     public Other editOther(Other other) {
         int id = other.getId();
-        Optional<Other> existingOther = otherRepository.findById(id);
-        existingOther.get().setName(other.getName());
-        existingOther.get().setDescription(other.getDescription());
-        existingOther.get().setPrice(other.getPrice());
-        return otherRepository.save(other);
-    }
-
-    @Override
-    public void deleteOther(int id) {
-        try {
-            Other other = otherRepository.findById(id)
-                    .orElseThrow(ChangeSetPersister.NotFoundException::new);
-        } catch (ChangeSetPersister.NotFoundException e) {
-            throw new RuntimeException(e);
+        Optional<Other> existingOtherOptional = otherRepository.findById(id);
+        if (existingOtherOptional.isPresent()) {
+            Other existingOther = existingOtherOptional.get();
+            existingOther.setName(other.getName());
+            existingOther.setPrice(other.getPrice());
+            existingOther.setDescription(other.getDescription());
+            return otherRepository.save(existingOther);
+        } else {
+            return other;
         }
-        otherRepository.deleteById(id);
     }
 
     @Override
-    public List<Other> getOthers() {
-        return List.of();
+    public boolean deleteOther(int id) {
+        Optional<Other> otherOptional = otherRepository.findById(id);
+        if (otherOptional.isPresent()) {
+            otherRepository.deleteById(id);
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public Page<Other> getOthers(Pageable pageable) {
+        return otherRepository.findAll(pageable);
     }
 }
