@@ -77,4 +77,3 @@ public class OtherController {
         return ResponseEntity.ok(others);
     }
 }
-
