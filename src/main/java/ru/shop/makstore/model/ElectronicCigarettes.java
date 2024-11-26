@@ -3,37 +3,35 @@ package ru.shop.makstore.model;
 import jakarta.persistence.*;
 
 import java.util.Objects;
-
 @Entity
-@Table(name = "other")
-public class Other {
-
+@Table(name = "electronic_cigarettes")
+public class ElectronicCigarettes {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
-
+    private long id;
     private String name;
     private String description;
+    private boolean retail;
     private int price;
     @OneToOne
     @JoinColumn(name = "image_id", nullable = true)
     private Image image;
+    public ElectronicCigarettes() {
+    }
 
-    public Other(int id, String name, String description, int price) {
+    public ElectronicCigarettes(long id, String name, String description, boolean retail, int price) {
         this.id = id;
         this.name = name;
         this.description = description;
+        this.retail = retail;
         this.price = price;
     }
 
-    public Other() {
-    }
-
-    public int getId() {
+    public long getId() {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(long id) {
         this.id = id;
     }
 
@@ -53,6 +51,14 @@ public class Other {
         this.description = description;
     }
 
+    public boolean isRetail() {
+        return retail;
+    }
+
+    public void setRetail(boolean retail) {
+        this.retail = retail;
+    }
+
     public int getPrice() {
         return price;
     }
@@ -62,27 +68,15 @@ public class Other {
     }
 
     @Override
-    public String toString() {
-        return "Other{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", description='" + description + '\'' +
-                ", price=" + price +
-                '}';
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        Other other = (Other) o;
-        return id == other.id && price == other.price
-                && Objects.equals(name, other.name)
-                && Objects.equals(description, other.description);
+        ElectronicCigarettes that = (ElectronicCigarettes) o;
+        return id == that.id && retail == that.retail && price == that.price && Objects.equals(name, that.name) && Objects.equals(description, that.description) && Objects.equals(image, that.image);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, description, price);
+        return Objects.hash(id, name, description, retail, price, image);
     }
 }

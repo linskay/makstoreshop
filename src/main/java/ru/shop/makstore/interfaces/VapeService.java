@@ -1,4 +1,4 @@
-package ru.shop.makstore.service;
+package ru.shop.makstore.interfaces;
 
 import ru.shop.makstore.model.Vape;
 

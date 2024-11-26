@@ -1,6 +1,7 @@
 package ru.shop.makstore.service;
 
 import org.springframework.data.crossstore.ChangeSetPersister;
+import ru.shop.makstore.interfaces.OtherService;
 import ru.shop.makstore.model.Other;
 import ru.shop.makstore.repositories.OtherRepository;
 

@@ -15,6 +15,9 @@ public class Vape {
     private String name;
     private String description;
     private int price;
+    @OneToOne
+    @JoinColumn(name = "image_id", nullable = true)
+    private Image image;
 
     public Vape(int id, String name, int price, String description) {
         this.id = id;
