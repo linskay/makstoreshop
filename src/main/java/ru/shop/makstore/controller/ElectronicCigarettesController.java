@@ -22,7 +22,7 @@ import ru.shop.makstore.service.ImageService;
 
 @RestController
 @RequestMapping("el/cigarettes")
-public class ElectronicCigarettesController {
+public class ElectronicCigarettesController{
     private final ElectronicCigarettesService electronicCigarettesService;
     private final ElectronicCigarettesRepository electronicCigarettesRepository;
     private final ImageService imageService;

@@ -6,7 +6,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 @Entity
-public class Image {
+public class Image{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;

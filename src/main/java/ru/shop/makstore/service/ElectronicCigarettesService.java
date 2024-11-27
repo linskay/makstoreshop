@@ -8,7 +8,7 @@ import java.util.Collection;
 import java.util.List;
 
 @Service
-public final class ElectronicCigarettesService implements ElectronicCigarettesInterface {
+public final class ElectronicCigarettesService implements ElectronicCigarettesInterface{
     private final ElectronicCigarettesRepository electronicCigarettesRepository;
 
     public ElectronicCigarettesService(

@@ -5,7 +5,7 @@ import ru.shop.makstore.model.ElectronicCigarettes;
 import java.util.Collection;
 import java.util.List;
 
-public interface ElectronicCigarettesInterface {
+public interface ElectronicCigarettesInterface{
     //crud (create read update delete)
     ElectronicCigarettes createElectronicCigarettes(ElectronicCigarettes electronicCigarettes);
 

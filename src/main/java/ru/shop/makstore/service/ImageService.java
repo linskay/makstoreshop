@@ -21,7 +21,7 @@ import java.util.NoSuchElementException;
 
 @Service
 @Transactional
-public class ImageService {
+public class ImageService{
     @Value("${product.image.dir.path}")
     private String imageDir;
 
