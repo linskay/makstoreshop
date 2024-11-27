@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import ru.shop.makstore.model.Other;
 import ru.shop.makstore.repositories.OtherRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -38,16 +39,19 @@ public class OtherServiceImpl implements OtherService {
 
     @Override
     public boolean deleteOther(int id) {
-        Optional<Other> otherOptional = otherRepository.findById(id);
-        if (otherOptional.isPresent()) {
-            otherRepository.deleteById(id);
+        return otherRepository.findById(id).map(other -> {
+            otherRepository.delete(other);
             return true;
-        }
-        return false;
+        }).orElse(false);
     }
 
     @Override
     public Page<Other> getOthers(Pageable pageable) {
         return otherRepository.findAll(pageable);
+    }
+
+    @Override
+    public List<Other> getAllOthers() {
+        return otherRepository.findAll();
     }
 }

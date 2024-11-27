@@ -2,19 +2,37 @@ package ru.shop.makstore.model;
 
 import jakarta.persistence.*;
 
+
+import java.time.LocalDateTime;
 import java.util.Objects;
 
+import  lombok.Getter;
+import lombok.Setter;
+
 @Entity
+@Getter
+@Setter
 @Table(name = "other")
 public class Other {
 
+    @Setter
+    @Getter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
 
+    @Getter
+    @Setter
     private String name;
+    @Setter
+    @Getter
     private String description;
+    @Setter
+    @Getter
     private int price;
+
+    @Column(name = "created_at", columnDefinition = "TIMESTAMP")
+    private LocalDateTime createdAt = LocalDateTime.now();
 
     public Other(int id, String name, String description, int price) {
         this.id = id;
@@ -24,38 +42,6 @@ public class Other {
     }
 
     public Other() {
-    }
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public int getPrice() {
-        return price;
-    }
-
-    public void setPrice(int price) {
-        this.price = price;
     }
 
     @Override

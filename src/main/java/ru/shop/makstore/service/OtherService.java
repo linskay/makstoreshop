@@ -4,6 +4,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import ru.shop.makstore.model.Other;
 
+import java.util.List;
+
 public interface OtherService {
 
     Other createOther(Other other);
@@ -13,4 +15,6 @@ public interface OtherService {
     boolean deleteOther(int id);
 
     Page<Other> getOthers(Pageable pageable);
+
+    List<Other> getAllOthers();
 }
