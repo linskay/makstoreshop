@@ -1,13 +1,15 @@
 package ru.shop.makstore.service;
 
-import jakarta.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import ru.shop.makstore.model.ElectronicCigarettes;
 import ru.shop.makstore.model.Image;
+import ru.shop.makstore.model.Product;
 import ru.shop.makstore.repositories.ImageRepository;
+import ru.shop.makstore.repositories.ProductRepository;
 
 
 import javax.imageio.ImageIO;
@@ -21,24 +23,24 @@ import java.util.NoSuchElementException;
 
 @Service
 @Transactional
-public class ImageService{
+public class ImageService {
     @Value("${product.image.dir.path}")
     private String imageDir;
 
-    private final ElectronicCigarettesService electronicCigarettesService;
+    private final ProductService productService;
     private final ImageRepository imageRepository;
 
-    public ImageService(ElectronicCigarettesService electronicCigarettesService,
+    public ImageService(ProductService productService,
                         ImageRepository imageRepository) {
-        this.electronicCigarettesService = electronicCigarettesService;
+        this.productService = productService;
         this.imageRepository = imageRepository;
     }
 
-    public void uploadImage(int electronicCigarettesId, MultipartFile file) throws IOException {
-        ElectronicCigarettes electronicCigarettes = electronicCigarettesService
-                .findElectronicCigarette(electronicCigarettesId);
+    public void uploadImage(int productId, MultipartFile file) throws IOException {
+        Product product = productService
+                .findProduct(productId);
 
-        Path filePath = Path.of(imageDir, electronicCigarettesId + "." + getExtension(file.getOriginalFilename()));
+        Path filePath = Path.of(imageDir, productId + "." + getExtension(file.getOriginalFilename()));
         Files.createDirectories(filePath.getParent());
 
         // Удаляем файл, если он существует
@@ -55,10 +57,10 @@ public class ImageService{
         }
 
         // Получаем или создаем фотку
-        Image image = imageRepository.findByElectronicCigarettesId(electronicCigarettesId)
+        Image image = imageRepository.findByProductId(productId)
                 .orElse(new Image());
         // задаем размеры
-        image.setElectronicCigarettes(electronicCigarettes);
+        image.setProduct(product);
         image.setFilePath(filePath.toString());
         image.setFileSize(file.getSize());
         image.setMediaType(file.getContentType());
@@ -67,9 +69,9 @@ public class ImageService{
         imageRepository.save(image);
     }
 
-    public Image findImage(int electronicCigarettesId) {
-        return imageRepository.findByElectronicCigarettesId(electronicCigarettesId)
-                .orElseThrow(() -> new NoSuchElementException("Image not found for id: " + electronicCigarettesId));
+    public Image findImage(int productId) {
+        return imageRepository.findByProductId(productId)
+                .orElseThrow(() -> new NoSuchElementException("Image not found for id: " + productId));
     }
 
     public byte[] generateImage(Path filePath, int targetWidth, int targetHeight) throws IOException {

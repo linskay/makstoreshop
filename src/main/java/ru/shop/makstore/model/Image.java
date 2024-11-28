@@ -16,34 +16,24 @@ public class Image{
     @Lob
     private byte[] savesDataInDb;
     @OneToOne
-    @JoinColumn(name = "electronic_cigarettes_id")
-    private ElectronicCigarettes electronicCigarettes;
-    @OneToOne
-    @JoinColumn(name = "vape_id")
-    private Vape vape;
-    //    @OneToOne
-//    @JoinColumn(name = "liquid id")
-//    private Liquid liquid;
-    @OneToOne
-    @JoinColumn(name = "other_id")
-    private Other other;
+    @JoinColumn(name = "product_id")
+    private Product product;
+
 
     public Image(){
     }
 
     public Image(int id, String filePath, long fileSize, String mediaType,
-                 byte[] savesDataInDb, ElectronicCigarettes electronicCigarettes, Vape vape, Other other) {
+                 byte[] savesDataInDb, Product product) {
         this.id = id;
         this.filePath = filePath;
         this.fileSize = fileSize;
         this.mediaType = mediaType;
         this.savesDataInDb = savesDataInDb;
-        this.electronicCigarettes = electronicCigarettes;
-        this.vape = vape;
-        this.other = other;
+        this.product = product;
     }
 
-    public long getId() {
+    public int getId() {
         return id;
     }
 
@@ -83,28 +73,12 @@ public class Image{
         this.savesDataInDb = savesDataInDb;
     }
 
-    public ElectronicCigarettes getElectronicCigarettes() {
-        return electronicCigarettes;
+    public Product getProduct() {
+        return product;
     }
 
-    public void setElectronicCigarettes(ElectronicCigarettes electronicCigarettes) {
-        this.electronicCigarettes = electronicCigarettes;
-    }
-
-    public Vape getVape() {
-        return vape;
-    }
-
-    public void setVape(Vape vape) {
-        this.vape = vape;
-    }
-
-    public Other getOther() {
-        return other;
-    }
-
-    public void setOther(Other other) {
-        this.other = other;
+    public void setProduct(Product product) {
+        this.product = product;
     }
 
     @Override
@@ -112,17 +86,29 @@ public class Image{
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Image image = (Image) o;
-        return id == image.id && fileSize == image.fileSize && Objects.equals(
-                filePath, image.filePath) && Objects.equals(mediaType, image.mediaType)
-                && Arrays.equals(savesDataInDb, image.savesDataInDb) && Objects.equals(
-                electronicCigarettes, image.electronicCigarettes) && Objects.equals
-                (vape, image.vape) && Objects.equals(other, image.other);
+        return id == image.id && fileSize == image.fileSize
+                && Objects.equals(filePath, image.filePath)
+                && Objects.equals(mediaType, image.mediaType)
+                && Arrays.equals(savesDataInDb, image.savesDataInDb)
+                && Objects.equals(product, image.product);
     }
 
     @Override
     public int hashCode() {
-        int result = Objects.hash(id, filePath, fileSize, mediaType, electronicCigarettes, vape, other);
+        int result = Objects.hash(id, filePath, fileSize, mediaType, product);
         result = 31 * result + Arrays.hashCode(savesDataInDb);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return "Image{" +
+                "id=" + id +
+                ", filePath='" + filePath + '\'' +
+                ", fileSize=" + fileSize +
+                ", mediaType='" + mediaType + '\'' +
+                ", savesDataInDb=" + Arrays.toString(savesDataInDb) +
+                ", product=" + product +
+                '}';
     }
 }
