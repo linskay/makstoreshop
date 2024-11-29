@@ -64,7 +64,7 @@ public class ImageService {
         image.setFilePath(filePath.toString());
         image.setFileSize(file.getSize());
         image.setMediaType(file.getContentType());
-        image.setSavesDataInDb(generateImage(filePath, 200, 100));
+        image.setSavesDataInDb(generateImage(filePath, 200, 200));
 
         imageRepository.save(image);
     }
