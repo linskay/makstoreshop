@@ -1,7 +1,6 @@
 package ru.shop.makstore.service;
 
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,8 +8,6 @@ import org.springframework.web.multipart.MultipartFile;
 import ru.shop.makstore.model.Image;
 import ru.shop.makstore.model.Product;
 import ru.shop.makstore.repositories.ImageRepository;
-import ru.shop.makstore.repositories.ProductRepository;
-
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -26,7 +23,6 @@ import java.util.NoSuchElementException;
 public class ImageService {
     @Value("${product.image.dir.path}")
     private String imageDir;
-
     private final ProductService productService;
     private final ImageRepository imageRepository;
 
@@ -37,8 +33,7 @@ public class ImageService {
     }
 
     public void uploadImage(int productId, MultipartFile file) throws IOException {
-        Product product = productService
-                .findProduct(productId);
+        Product product = productService.findProduct(productId);
 
         Path filePath = Path.of(imageDir, productId + "." + getExtension(file.getOriginalFilename()));
         Files.createDirectories(filePath.getParent());
@@ -47,25 +42,20 @@ public class ImageService {
         if (Files.exists(filePath)) {
             Files.delete(filePath);
         }
-
-        // Записываем новый файл
-        try (InputStream is = file.getInputStream();
-             OutputStream os = Files.newOutputStream(filePath, StandardOpenOption.CREATE_NEW);
-             BufferedInputStream bis = new BufferedInputStream(is);
-             BufferedOutputStream bos = new BufferedOutputStream(os)) {
-            bis.transferTo(bos);
+        // Сжимаем и сохраняем новый файл
+        try (InputStream is = file.getInputStream()) {
+            byte[] compressedImage = generateImage(is, 200, 200);
+            Files.write(filePath, compressedImage, StandardOpenOption.CREATE_NEW);
         }
 
         // Получаем или создаем фотку
-        Image image = imageRepository.findByProductId(productId)
-                .orElse(new Image());
-        // задаем размеры
+        Image image = imageRepository.findByProductId(productId).orElse(new Image());
+        // задаем свойства изображения
         image.setProduct(product);
         image.setFilePath(filePath.toString());
         image.setFileSize(file.getSize());
         image.setMediaType(file.getContentType());
-        image.setSavesDataInDb(generateImage(filePath, 200, 200));
-
+        image.setSavesDataInDb(Files.readAllBytes(filePath));
         imageRepository.save(image);
     }
 
@@ -74,30 +64,25 @@ public class ImageService {
                 .orElseThrow(() -> new NoSuchElementException("Image not found for id: " + productId));
     }
 
-    public byte[] generateImage(Path filePath, int targetWidth, int targetHeight) throws IOException {
-        try (InputStream is = Files.newInputStream(filePath);
-             BufferedInputStream bis = new BufferedInputStream(is);
-             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-
-            BufferedImage image = ImageIO.read(bis);
-
-            if (image == null) {
-                throw new IOException("Failed to read image from file: " + filePath);
-            }
-
-            double scale = Math.min((double) targetWidth / image.getWidth(), (double) targetHeight / image.getHeight());
-
-            int newWidth = (int) (image.getWidth() * scale);
-            int newHeight = (int) (image.getHeight() * scale);
-
-            BufferedImage preview = new BufferedImage(newWidth, newHeight, image.getType());
-            Graphics2D graphics = preview.createGraphics();
-            graphics.drawImage(image, 0, 0, newWidth, newHeight, null);
-            graphics.dispose();
-
-            ImageIO.write(preview, getExtension(filePath.getFileName().toString()), baos);
-            return baos.toByteArray();
+    private byte[] generateImage(InputStream inputStream, int targetWidth, int targetHeight) throws IOException {
+        BufferedImage image = ImageIO.read(inputStream);
+        if (image == null) {
+            throw new IOException("Failed to read image from input stream.");
         }
+
+        double scale = Math.min((double) targetWidth / image.getWidth(), (double) targetHeight / image.getHeight());
+
+        int newWidth = (int) (image.getWidth() * scale);
+        int newHeight = (int) (image.getHeight() * scale);
+
+        BufferedImage resizedImage = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
+        Graphics2D graphics = resizedImage.createGraphics();
+        graphics.drawImage(image, 0, 0, newWidth, newHeight, null);
+        graphics.dispose();
+
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ImageIO.write(resizedImage, getExtension("jpg"), baos);  // сохраняем как jpg
+        return baos.toByteArray();
     }
 
     private String getExtension(String filename) {
@@ -108,4 +93,5 @@ public class ImageService {
         return filename.substring(lastIndex + 1).toLowerCase();
     }
 }
+
 

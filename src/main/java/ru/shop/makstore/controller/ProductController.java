@@ -1,6 +1,5 @@
 package ru.shop.makstore.controller;
 
-import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -14,10 +13,7 @@ import ru.shop.makstore.service.ImageService;
 import ru.shop.makstore.service.ProductService;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.file.Files;
-import java.nio.file.Path;
+import java.util.NoSuchElementException;
 
 @RestController
 @RequestMapping("/product")
@@ -66,7 +62,7 @@ public class ProductController {
     }
 
     @PostMapping
-    public Product addProduct (Product product) {
+    public Product addProduct(Product product) {
         return productService.createProduct(product);
     }
 
@@ -88,21 +84,25 @@ public class ProductController {
     }
 
     @PostMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<String> addImage(@PathVariable int id,
-                                           @RequestParam MultipartFile image) throws IOException {
-        if (image.getSize() >= 200 * 200) {
-            return ResponseEntity.badRequest().body("Cover file size is too large.");
+    public ResponseEntity<String> addImage(@PathVariable int id, @RequestParam MultipartFile image) {
+        try {
+            imageService.uploadImage(id, image);
+            return ResponseEntity.ok("Image uploaded successfully.");
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to upload image: " + e.getMessage());
         }
-        imageService.uploadImage(id, image);
-        return ResponseEntity.ok().build();
     }
 
     @GetMapping(value = "/{id}/save/image")
     public ResponseEntity<byte[]> downloadImage(@PathVariable int id) {
-        Image image = imageService.findImage(id);
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.parseMediaType(image.getMediaType()));
-        headers.setContentLength(image.getSavesDataInDb().length);
-        return ResponseEntity.status(HttpStatus.OK).headers(headers).body(image.getSavesDataInDb());
+        try {
+            Image image = imageService.findImage(id);
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.parseMediaType(image.getMediaType()));
+            headers.setContentLength(image.getSavesDataInDb().length);
+            return ResponseEntity.ok().headers(headers).body(image.getSavesDataInDb());
+        } catch (NoSuchElementException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }
