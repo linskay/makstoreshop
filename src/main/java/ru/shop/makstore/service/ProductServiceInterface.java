@@ -2,22 +2,28 @@ package ru.shop.makstore.service;
 
 import ru.shop.makstore.model.Product;
 
-import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 public interface ProductServiceInterface {
-     //crud (create read update delete)
     Product createProduct(Product product);
 
-    Product editProduct(Product productForUpdate);
+    Optional<Product> updateProduct(int id, Product productForUpdate); // измененный метод
 
-    Product deleteProduct(int id);
+    boolean deleteProduct(int id); // измененный метод
+
+    Optional<Product> getProductById(int id); // новый метод
+
+    List<Product> getAllProducts(); // измененный метод
+
     Product findProduct(int id);
 
-    Collection<Product> getProduct();
     Product findByName(String name);
-    Collection<Product> findByDescription(String description);
-    Collection<Product> findByPriceRetail(Integer priceRetail);
-    Collection<Product> findByPriceWhole(Integer priceWhole);
 
+    List<Product> findByDescription(String description); // измененный метод
+
+    List<Product> findByPriceRetail(Integer priceRetail); // измененный метод
+
+    List<Product> findByPriceWhole(Integer priceWhole); // измененный метод
 }
+

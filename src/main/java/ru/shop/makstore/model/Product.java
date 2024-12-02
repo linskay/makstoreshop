@@ -7,20 +7,16 @@ import ru.shop.makstore.enumtypes.ProductType;
 
 import java.util.Objects;
 
+@Setter
 @Getter
 @Entity
 public class Product {
-    @Setter
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
-    @Setter
     private String name;
-    @Setter
     private String description;
-    @Setter
     private int priceRetail;
-    @Setter
     private int priceWhole;
     @Enumerated(EnumType.STRING)
     private ProductType type;
@@ -41,13 +37,14 @@ public class Product {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Product product)) return false;
-        return getId() == product.getId();
+        if (o == null || getClass() != o.getClass()) return false;
+        Product product = (Product) o;
+        return id == product.id;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(getId());
+        return Objects.hash(id);
     }
 
     @Override

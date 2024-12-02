@@ -3,11 +3,13 @@ package ru.shop.makstore.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.shop.makstore.enumtypes.ProductType;
 import ru.shop.makstore.exception.ProductNotFoundException;
 import ru.shop.makstore.model.Product;
 import ru.shop.makstore.repositories.ProductRepository;
 
-import java.util.Collection;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 @Transactional
@@ -16,55 +18,57 @@ public class ProductService implements ProductServiceInterface {
     @Autowired
     private ProductRepository productRepository;
 
-
     @Override
-    public Product createProduct(Product product) { // создает
+    public Product createProduct(Product product) {
         return productRepository.save(product);
     }
 
-    @Override
-    public Product editProduct(Product productForUpdate) { // редачит
-        if (!productRepository.existsById(productForUpdate.getId())) {
-            throw new ProductNotFoundException(productForUpdate.getId());
+    public Optional<Product> updateProduct(int id, Product productForUpdate) {
+        if (productRepository.existsById(id)) {
+            productForUpdate.setId(id);
+            return Optional.of(productRepository.save(productForUpdate));
         }
-        return productRepository.save(productForUpdate);
+        return Optional.empty();
     }
 
-    @Override
-    public Product deleteProduct(int id) { // удаляет
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ProductNotFoundException(id));
-        productRepository.deleteById(product.getId());
-        return product;
+    public boolean deleteProduct(int id) {
+        if (productRepository.existsById(id)) {
+            productRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 
-    @Override
-    public Product findProduct(int id) {  //  возвращает продукт по id
+    public Optional<Product> getProductById(int id) {
+        return productRepository.findById(id);
+    }
+
+    public List<Product> getAllProducts() {
+        return productRepository.findAll();
+    }
+
+    public Product findProduct(int id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException(id));
     }
 
-    @Override
-    public Collection<Product> getProduct() { //  список продуктов
-        return productRepository.findAll();
-    }
-
-    @Override
-    public Product findByName(String name) {  //  по имени
+    public Product findByName(String name) {
         return productRepository.findByNameIgnoreCase(name);
     }
 
-    @Override
-    public Collection<Product> findByDescription(String description) { //  по описанию
+    public List<Product> findByDescription(String description) {
         return productRepository.findByDescriptionContainsIgnoreCase(description);
     }
 
-    @Override
-    public Collection<Product> findByPriceRetail(Integer priceRetail) { //  по цене розница
+    public List<Product> findByPriceRetail(Integer priceRetail) {
         return productRepository.findByPriceRetail(priceRetail);
     }
-    @Override
-    public Collection<Product> findByPriceWhole(Integer priceWhole) { //  по цене опт
+
+    public List<Product> findByPriceWhole(Integer priceWhole) {
         return productRepository.findByPriceWhole(priceWhole);
+    }
+
+    public List<Product> findByType(String type) {
+        return productRepository.findByType(ProductType.valueOf(type));
     }
 }
