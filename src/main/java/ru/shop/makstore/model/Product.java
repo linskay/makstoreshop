@@ -1,9 +1,14 @@
 package ru.shop.makstore.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import ru.shop.makstore.enumtypes.ProductType;
 
 import java.util.Objects;
+
+@Setter
+@Getter
 @Entity
 public class Product {
     @Id
@@ -29,65 +34,17 @@ public class Product {
         this.type = type;
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public int getPriceRetail() {
-        return priceRetail;
-    }
-
-    public void setPriceRetail(int priceRetail) {
-        this.priceRetail = priceRetail;
-    }
-
-    public int getPriceWhole() {
-        return priceWhole;
-    }
-
-    public void setPriceWhole(int priceWhole) {
-        this.priceWhole = priceWhole;
-    }
-
-    public ProductType getType() {
-        return type;
-    }
-
-    public void setType(ProductType type) {
-        this.type = type;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Product product = (Product) o;
-        return id == product.id && priceRetail == product.priceRetail && priceWhole == product.priceWhole && Objects.equals(name, product.name) && Objects.equals(description, product.description) && type == product.type;
+        return id == product.id;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, name, description, priceRetail, priceWhole, type);
+        return Objects.hash(id);
     }
 
     @Override
