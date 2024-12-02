@@ -10,7 +10,11 @@ import ru.shop.makstore.model.Product;
 import ru.shop.makstore.repositories.ImageRepository;
 
 
+import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageWriteParam;
+import javax.imageio.ImageWriter;
+import javax.imageio.stream.ImageOutputStream;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -58,22 +62,45 @@ public class ImageService {
         return imageRepository.findByProductId(productId).orElse(new Image());
     }
     private byte[] generateImage(Path filePath) throws IOException {
-        try ( InputStream is = Files.newInputStream(filePath);
-              BufferedInputStream bis = new BufferedInputStream(is, 1024);
-              ByteArrayOutputStream bays = new ByteArrayOutputStream()) {
+        try (InputStream is = Files.newInputStream(filePath);
+             BufferedInputStream bis = new BufferedInputStream(is, 1024);
+             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+
             BufferedImage image = ImageIO.read(bis);
-            int height = image.getHeight() / (image.getWidth() / 100);
-            BufferedImage preview = new BufferedImage(100,height, image.getType());
+
+            if (image == null) {
+                throw new IOException("Could not read image from file: " + filePath);
+            }
+
+            // Здесь ты можешь создать уменьшенную версию фотки
+            int newWidth = 150;
+            int newHeight = (int) ((newWidth / (double) image.getWidth()) * image.getHeight());
+
+            BufferedImage preview = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
             Graphics2D graphics = preview.createGraphics();
-            graphics.drawImage(image, 0, 0, 100,height, null);
+
+            // и установить качество отрисовки
+            graphics.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            graphics.drawImage(image, 0, 0, newWidth, newHeight, null);
             graphics.dispose();
-            ImageIO.write(preview, getExtension(filePath.getFileName().toString()), bays);
-            return bays.toByteArray();
+
+            // сохраняем изображение с контролем качества
+            ImageWriter writer = ImageIO.getImageWritersByFormatName("jpeg").next();
+            ImageWriteParam param = writer.getDefaultWriteParam();
+            param.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
+            param.setCompressionQuality(1.0f); // 1.0f - максимальное качество
+
+            try (ImageOutputStream ios = ImageIO.createImageOutputStream(baos)) {
+                writer.setOutput(ios);
+                writer.write(null, new IIOImage(preview, null, null), param);
+            }
+
+            return baos.toByteArray();
         }
     }
+
     private String getExtension(String filename) {
         return filename.substring(filename.lastIndexOf(".") + 1);
     }
-
 }
 
