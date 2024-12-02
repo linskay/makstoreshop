@@ -89,15 +89,23 @@ public class ProductController {
 
     @PostMapping(value = "/{id}/image", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<String> addImage(@PathVariable int id,
-                                           @RequestParam MultipartFile image) throws IOException {
-        if (image.getSize() >= 200 * 200) {
+                                           @RequestParam MultipartFile cover) throws IOException {
+        if (cover.getSize() >= 3840 * 2160) {
             return ResponseEntity.badRequest().body("Cover file size is too large.");
         }
-        imageService.uploadImage(id, image);
+        imageService.additionImage(id, cover);
         return ResponseEntity.ok().build();
     }
-
-    @GetMapping(value = "/{id}/save/image")
+    /*
+                   HD 1280×720 (16:9)
+                   WXGA 1366×768 (16:9)
+                   Full HD 1920×1080 (16:9)
+                   WQHD 2560×1440 (16:9)
+                   UWQHD 3100×1440 (21:9)
+                   4K UHD 3840×2160 (16:9)
+                   8K UHD 7680×4320 (16:9)
+     */
+    @GetMapping(value = "/{id}/DB")
     public ResponseEntity<byte[]> downloadImage(@PathVariable int id) {
         Image image = imageService.findImage(id);
         HttpHeaders headers = new HttpHeaders();
