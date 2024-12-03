@@ -12,8 +12,12 @@ import com.vaadin.flow.component.textfield.IntegerField;
 import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.spring.annotation.SpringComponent;
+import com.vaadin.flow.spring.annotation.UIScope;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
+import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 import reactor.core.publisher.Mono;
@@ -21,12 +25,15 @@ import ru.shop.makstore.enumtypes.ProductType;
 import ru.shop.makstore.model.Product;
 
 import java.util.Arrays;
-import java.util.List;
+import java.util.function.Supplier;
 
-@Component
+@SpringComponent
+@UIScope
 @Route("admin/products")
 public class AdminProductView extends VerticalLayout {
 
+    private final Logger logger = LoggerFactory.getLogger(AdminProductView.class);
+    private Dialog dialog;
     private final WebClient webClient;
     private final Grid<Product> grid;
     private final Binder<Product> binder;
@@ -79,11 +86,11 @@ public class AdminProductView extends VerticalLayout {
 
     private void loadProducts() {
         webClient.get()
+                .uri("/")
                 .retrieve()
                 .bodyToFlux(Product.class)
-                .collectList()
-                .subscribe(products -> UI.getCurrent().access(() -> grid.setItems(products)),
-                        error -> UI.getCurrent().access(() -> Notification.show("Error loading products: " + error.getMessage())));
+                .subscribe(product -> logger.info("Product: {}", product),
+                        error -> logger.error("Error loading products:", error));
     }
 
     private Button createAddButton() {
@@ -95,40 +102,53 @@ public class AdminProductView extends VerticalLayout {
     }
 
     private void openAddDialog() {
-        Dialog dialog = new Dialog();
-        dialog.setHeaderTitle("Add Product");
-
+        dialog = new Dialog();
         FormLayout form = new FormLayout(nameField, descriptionField, priceRetailField, priceWholeField, typeComboBox);
-        dialog.add(form);
+        Button saveButton = new Button("Save", e -> saveProduct(binder.getBean()));
+        Button cancelButton = new Button("Cancel", e -> dialog.close());
 
-        Button saveButton = new Button("Save", event -> {
-            Product newProduct = new Product();
-            boolean isValid = binder.writeBeanIfValid(newProduct);
-
-            if (isValid) {
-                webClient.post()
-                        .uri("/")
-                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-                        .body(Mono.just(newProduct), Product.class)
-                        .retrieve()
-                        .bodyToMono(Product.class)
-                        .subscribe(product -> UI.getCurrent().access(() -> {
-                                    Notification.show("Product added successfully!");
-                                    loadProducts();
-                                    dialog.close();
-                                }),
-                                error -> UI.getCurrent().access(() -> {
-                                    handleError(error, "Error adding product");
-                                }));
-            } else {
-                Notification.show("Please fill in all required fields.");
-            }
-        });
-
-        Button cancelButton = new Button("Cancel", event -> dialog.close());
-
-        dialog.add(saveButton, cancelButton);
+        dialog.add(form, saveButton, cancelButton);
         dialog.open();
+    }
+
+    private void saveProduct(Product product) {
+        boolean isValid = binder.writeBeanIfValid(product);
+        if (!isValid) {
+            Notification.show("Пожалуйста, заполните все обязательные поля.");
+            return;
+        }
+
+        Mono<Product> resultMono;
+        if (product.getId() == null) { // Добавление нового продукта
+            resultMono = webClient.post()
+                    .uri("/")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Mono.just(product), Product.class)
+                    .retrieve()
+                    .bodyToMono(Product.class);
+        } else {
+            resultMono = webClient.put()
+                    .uri("/{id}", product.getId())
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(Mono.just(product), Product.class)
+                    .retrieve()
+                    .bodyToMono(Product.class);
+        }
+
+        resultMono.subscribe(
+                savedProduct -> UI.getCurrent().access(() -> {
+                    loadProducts();
+                    Notification.show("Продукт успешно " + (product.getId() == null ? "добавлен" : "обновлен") + "!");
+                    dialog.close();
+                }),
+                error -> UI.getCurrent().access(() -> {
+                    Notification.show("Ошибка: " + getErrorMessage(error));
+                })
+        );
+    }
+
+    private String getErrorMessage(Throwable error) { // Объявление метода
+        return error != null && error.getMessage() != null ? error.getMessage() : "Произошла неизвестная ошибка.";
     }
 
     private Button createUpdateButton() {
@@ -138,7 +158,7 @@ public class AdminProductView extends VerticalLayout {
                 binder.setBean(product);
                 openUpdateDialog(product);
             } else {
-                Notification.show("Please select a product to update.");
+                Notification.show("Select a product to update.");
             }
         });
     }
@@ -151,22 +171,25 @@ public class AdminProductView extends VerticalLayout {
         dialog.add(form);
 
         Button saveButton = new Button("Save", event -> {
-            binder.writeBeanIfValid(product);
-
-            webClient.put()
-                    .uri("/{id}", product.getId())
-                    .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
-                    .body(Mono.just(product), Product.class)
-                    .retrieve()
-                    .bodyToMono(Product.class)
-                    .subscribe(updatedProduct -> UI.getCurrent().access(() -> {
-                                Notification.show("Product updated successfully!");
-                                loadProducts();
-                                dialog.close();
-                            }),
-                            error -> UI.getCurrent().access(() -> {
-                                handleError(error, "Error updating product");
-                            }));
+            boolean isValid = binder.writeBeanIfValid(product);
+            if (isValid) {
+                webClient.put()
+                        .uri("/{id}", product.getId())
+                        .contentType(org.springframework.http.MediaType.APPLICATION_JSON)
+                        .body(Mono.just(product), Product.class)
+                        .retrieve()
+                        .bodyToMono(Product.class)
+                        .subscribe(updatedProduct -> UI.getCurrent().access(() -> {
+                                    Notification.show("Product updated successfully!");
+                                    loadProducts();
+                                    dialog.close();
+                                }),
+                                error -> UI.getCurrent().access(() -> {
+                                    handleError(error, "Error updating product");
+                                }));
+            } else {
+                Notification.show("Please fill in all required fields.");
+            }
         });
 
         Button cancelButton = new Button("Cancel", event -> dialog.close());
@@ -178,29 +201,37 @@ public class AdminProductView extends VerticalLayout {
     private Button createDeleteButton() {
         return new Button("Delete Product", event -> {
             Product product = grid.asSingleSelect().getValue();
-            if (product != null) {
+            if (product != null && product.getId() != null) {
                 webClient.delete()
                         .uri("/{id}", product.getId())
                         .retrieve()
-                        .toBodilessEntity()
-                        .subscribe(response -> UI.getCurrent().access(() -> {
+                        .bodyToMono(Void.class)
+                        .subscribe(v -> UI.getCurrent().access(() -> {
                                     Notification.show("Product deleted successfully!");
                                     loadProducts();
                                 }),
-                                error -> UI.getCurrent().access(() -> {
-                                    handleError(error, "Error deleting product");
-                                }));
+                                error -> handleError(error, "Deleting product"));
             } else {
-                Notification.show("Please select a product to delete.");
+                Notification.show("Select a product to delete.");
             }
         });
     }
 
-    private void handleError(Throwable error, String message) {
-        if (error instanceof WebClientResponseException exception) {
-            Notification.show(message + ": " + exception.getRawStatusCode() + " - " + exception.getMessage());
-        } else {
-            Notification.show(message + ": " + error.getMessage());
+    private void handleError(Throwable error, String operation) {
+        Supplier<String> messageSupplier = () -> {
+            String message = error.getMessage();
+            if (error instanceof WebClientResponseException) {
+                WebClientResponseException ex = (WebClientResponseException) error;
+                message = "HTTP error " + ex.getStatusCode() + ": " + ex.getMessage();
+            }
+            return message;
+        };
+
+        System.err.println("Error " + operation + ": " + messageSupplier.get());
+
+        UI ui = UI.getCurrent();
+        if (ui != null) {
+            ui.access(() -> Notification.show("Error " + operation + ": " + messageSupplier.get()));
         }
     }
 }
