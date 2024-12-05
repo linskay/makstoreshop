@@ -18,6 +18,10 @@ public class ProductService implements ProductServiceInterface {
     @Autowired
     private ProductRepository productRepository;
 
+    public Product findProductById(int productId) {
+        return productRepository.findById(productId).orElse(null);
+    }
+
     @Override
     public Product createProduct(Product product) {
         return productRepository.save(product);
