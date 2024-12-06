@@ -40,7 +40,7 @@ public class ShoppingCartController {
         // Добавляем продукт в корзину с правильной ценой
         shoppingCartService.addProductToCart(telegramId, product, quantityInPieces, isWholesale);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body("Product added to cart successfully.");
+        return ResponseEntity.status(HttpStatus.OK).body("Product added to cart successfully.");
     }
 
     @DeleteMapping("/remove")
@@ -55,7 +55,7 @@ public class ShoppingCartController {
     }
 
     @PutMapping("/update")
-    public ResponseEntity<String> updateProductQuantity(@RequestParam int telegramId,
+    public ResponseEntity<String> updateProductQuantity(@RequestParam int telegramId, // пока не юзаем Олег вахуе
                                                         @RequestParam int idProduct,
                                                         @RequestParam int quantityInPieces) {
         shoppingCartService.updateProductQuantity(telegramId, idProduct, quantityInPieces);

@@ -60,7 +60,7 @@ public class ShoppingCartService implements ShoppingCartServiceInterface {
     }
 
     @Override
-    public void updateProductQuantity(int telegramId, int idProduct, int quantityInPieces) {
+    public void updateProductQuantity(int telegramId, int idProduct, int quantityInPieces) {  // пока не юзаем Олег вахуе
         List<ShoppingCart> cartItems = carts.get(telegramId);
         if (cartItems != null) {
             for (ShoppingCart item : cartItems) {
