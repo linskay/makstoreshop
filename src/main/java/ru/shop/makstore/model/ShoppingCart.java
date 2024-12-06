@@ -136,13 +136,4 @@ public class ShoppingCart {
                 ", priceWhole=" + priceWhole +
                 '}';
     }
-
-    public static void main(String[] args) {
-        ShoppingCart cart1 = new ShoppingCart(1, 1, "Product 1",
-                2, 100, 150, false);
-        ShoppingCart cart2 = new ShoppingCart(1, 1, "Product 1",
-                2, 100, 150, false);
-
-        System.out.println(cart1.equals(cart2)); // true
-    }
 }
