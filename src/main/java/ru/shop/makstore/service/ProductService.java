@@ -18,7 +18,20 @@ import static java.nio.file.StandardOpenOption.CREATE_NEW;
 
 @Service
 @Transactional
-public class ProductService {
+
+public class ProductService implements ProductServiceInterface {
+
+    @Autowired
+    private ProductRepository productRepository;
+
+    public Product findProductById(int productId) {
+        return productRepository.findById(productId).orElse(null);
+    }
+
+    @Override
+    public Product createProduct(Product product) {
+        return productRepository.save(product);
+    }
 
     private final ProductRepository productRepository;
     private final ImageRepository imageRepository;

@@ -27,6 +27,9 @@ public class Product {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ProductType type;
+    @OneToOne
+    @JoinColumn(name = "image_id")
+    private Image image;
 
     public Product() {}
 
@@ -36,6 +39,62 @@ public class Product {
         this.priceRetail = priceRetail;
         this.priceWhole = priceWhole;
         this.type = type;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public int getPriceRetail() {
+        return priceRetail;
+    }
+
+    public void setPriceRetail(int priceRetail) {
+        this.priceRetail = priceRetail;
+    }
+
+    public int getPriceWhole() {
+        return priceWhole;
+    }
+
+    public void setPriceWhole(int priceWhole) {
+        this.priceWhole = priceWhole;
+    }
+
+    public ProductType getType() {
+        return type;
+    }
+
+    public void setType(ProductType type) {
+        this.type = type;
+    }
+
+    public Image getImage() {
+        return image;
+    }
+
+    public void setImage(Image image) {
+        this.image = image;
     }
 
     @Override

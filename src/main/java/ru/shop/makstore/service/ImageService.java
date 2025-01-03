@@ -61,9 +61,54 @@ public class ImageService {
         imageRepository.save(image);
     }
 
-    public Image findImage(Integer productId) {
-        return imageRepository.findByProductId(productId).orElse(new Image());
+    public Image findImage(int productId) throws IOException {
+        Optional<Image> optionalImage = imageRepository.findByProductId(productId);
+
+        if (optionalImage.isPresent()) {
+            return optionalImage.get();
+        } else {
+            // Возвращаем изображение по умолчанию
+            return createDefaultImage();
+        }
     }
+
+    private Image createDefaultImage() throws IOException {
+        Image defaultImage = new Image();
+        Path defaultImagePath = Path.of(imageDir, "default.png");
+
+        if (!Files.exists(defaultImagePath)) {
+            throw new IOException("Default image not found at: " + defaultImagePath);
+        }
+
+        // Генерируем байты из изображения по умолчанию
+        defaultImage.setFilePath(defaultImagePath.toString());
+        defaultImage.setSavesDataInDb(generateImage(defaultImagePath));
+
+        // Устанавливаем параметры по умолчанию
+        defaultImage.setFileSize(Files.size(defaultImagePath));
+        defaultImage.setMediaType("image/png");
+
+        return defaultImage;
+    }
+
+
+    private byte[] generateImage(Path filePath) throws IOException {
+        try (InputStream is = Files.newInputStream(filePath);
+             BufferedInputStream bis = new BufferedInputStream(is, 1024);
+             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+
+            BufferedImage image = ImageIO.read(bis);
+
+            if (image == null) {
+                throw new IOException("Could not read image from file: " + filePath);
+            }
+
+            // Здесь ты можешь создать уменьшенную версию фотки
+            int newWidth = 150;
+            int newHeight = (int) ((newWidth / (double) image.getWidth()) * image.getHeight());
+
+            BufferedImage preview = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
+            Graphics2D graphics = preview.createGraphics();
 
     private byte[] resizeImage(byte[] originalImage, int width, int height) throws IOException {
         BufferedImage bufferedImage = ImageIO.read(new ByteArrayInputStream(originalImage));
