@@ -5,6 +5,7 @@ import ru.shop.makstore.model.Image;
 
 import java.util.Optional;
 
-public interface ImageRepository extends JpaRepository<Image, Long>{
+public interface ImageRepository extends JpaRepository<Image, Integer> {
     Optional<Image> findByProductId(Integer productId);
 }
+
