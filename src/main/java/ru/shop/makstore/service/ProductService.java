@@ -1,18 +1,24 @@
 package ru.shop.makstore.service;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.shop.makstore.enumtypes.ProductType;
-import ru.shop.makstore.exception.ProductNotFoundException;
+import ru.shop.makstore.model.Image;
 import ru.shop.makstore.model.Product;
+import ru.shop.makstore.repositories.ImageRepository;
 import ru.shop.makstore.repositories.ProductRepository;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 
+import static java.nio.file.StandardOpenOption.CREATE_NEW;
+
 @Service
 @Transactional
+
 public class ProductService implements ProductServiceInterface {
 
     @Autowired
@@ -27,52 +33,60 @@ public class ProductService implements ProductServiceInterface {
         return productRepository.save(product);
     }
 
-    public Optional<Product> updateProduct(int id, Product productForUpdate) {
-        if (productRepository.existsById(id)) {
-            productForUpdate.setId(id);
-            return Optional.of(productRepository.save(productForUpdate));
-        }
-        return Optional.empty();
-    }
+    private final ProductRepository productRepository;
+    private final ImageRepository imageRepository;
+    private final String defaultImageDir = "images/default.jpg";
 
-    public boolean deleteProduct(int id) {
-        if (productRepository.existsById(id)) {
-            productRepository.deleteById(id);
-            return true;
-        }
-        return false;
-    }
-
-    public Optional<Product> getProductById(int id) {
-        return productRepository.findById(id);
+    public ProductService(ProductRepository productRepository, ImageRepository imageRepository) {
+        this.productRepository = productRepository;
+        this.imageRepository = imageRepository;
     }
 
     public List<Product> getAllProducts() {
         return productRepository.findAll();
     }
 
-    public Product findProduct(int id) {
-        return productRepository.findById(id)
-                .orElseThrow(() -> new ProductNotFoundException(id));
+    public Optional<Product> getProductById(Integer id) {
+        return productRepository.findById(id);
     }
 
-    public Product findByName(String name) {
-        return productRepository.findByNameIgnoreCase(name);
+    public Product createProduct(Product product) {
+        Product savedProduct = productRepository.save(product);
+        // Проверка, есть ли уже изображение
+        Optional<Image> image = imageRepository.findByProductId(savedProduct.getId());
+
+        if (image.isEmpty()){
+            try {
+                Path filePath = Paths.get(defaultImageDir);
+                byte[] defaultImage = Files.readAllBytes(filePath);
+
+                Image newImage = new Image();
+                newImage.setProduct(savedProduct);
+                newImage.setFilePath(defaultImageDir);
+                newImage.setFileSize(defaultImage.length);
+                newImage.setMediaType("image/jpg");
+                newImage.setSavesDataInDb(defaultImage);
+                imageRepository.save(newImage);
+            } catch (IOException e) {
+                throw new RuntimeException("Could not read default image file: " + e.getMessage());
+            }
+        }
+        return savedProduct;
     }
 
-    public List<Product> findByDescription(String description) {
-        return productRepository.findByDescriptionContainsIgnoreCase(description);
+    public Optional<Product> updateProduct(Integer id, Product product) {
+        if (productRepository.existsById(id)) {
+            product.setId(id);
+            return Optional.of(productRepository.save(product));
+        }
+        return Optional.empty();
     }
 
-    public List<Product> findByPriceRetail(Integer priceRetail) {
-        return productRepository.findByPriceRetail(priceRetail);
-    }
-
-    public List<Product> findByPriceWhole(Integer priceWhole) {
-        return productRepository.findByPriceWhole(priceWhole);
-    }
-
-    public List<Product> findByType(String type) {
-        return productRepository.findByType(ProductType.valueOf(type));
+    public boolean deleteProduct(Integer id) {
+        if (productRepository.existsById(id)) {
+            productRepository.deleteById(id);
+            return true;
+        }
+        return false;
     }
 }

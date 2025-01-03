@@ -14,20 +14,25 @@ public class Image {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+
     private String filePath;
+
     private long fileSize;
+
     private String mediaType;
+
     @Lob
     private byte[] savesDataInDb;
+
     @OneToOne
     @JoinColumn(name = "product_id")
     private Product product;
 
-    public Image() {
-    }
+    public Image() {}
 
     public Image(int id, String filePath, long fileSize, String mediaType,
                  byte[] savesDataInDb, Product product) {
+
         this.id = id;
         this.filePath = filePath;
         this.fileSize = fileSize;
@@ -89,11 +94,7 @@ public class Image {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Image image = (Image) o;
-        return id == image.id && fileSize == image.fileSize
-                && Objects.equals(filePath, image.filePath)
-                && Objects.equals(mediaType, image.mediaType)
-                && Arrays.equals(savesDataInDb, image.savesDataInDb)
-                && Objects.equals(product, image.product);
+        return id == image.id && fileSize == image.fileSize && Objects.equals(filePath, image.filePath) && Objects.equals(mediaType, image.mediaType) && Arrays.equals(savesDataInDb, image.savesDataInDb) && Objects.equals(product, image.product);
     }
 
     @Override

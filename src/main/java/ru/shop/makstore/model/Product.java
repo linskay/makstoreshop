@@ -13,23 +13,27 @@ import java.util.Objects;
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
+    private Integer id;
+
+    @Column(nullable = false)
     private String name;
+
     private String description;
+
     private int priceRetail;
+
     private int priceWhole;
+
     @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
     private ProductType type;
     @OneToOne
     @JoinColumn(name = "image_id")
     private Image image;
 
-    public Product() {
-    }
+    public Product() {}
 
-    public Product(int id, String name, String description,
-                   int priceRetail, int priceWhole, ProductType type) {
-        this.id = id;
+    public Product(String name, String description, int priceRetail, int priceWhole, ProductType type) {
         this.name = name;
         this.description = description;
         this.priceRetail = priceRetail;
@@ -98,7 +102,7 @@ public class Product {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Product product = (Product) o;
-        return id == product.id;
+        return id.equals(product.id);
     }
 
     @Override
