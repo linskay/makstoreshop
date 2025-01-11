@@ -28,6 +28,8 @@ public class Product {
     @Column(nullable = false)
     private ProductType type;
 
+    private String imageUrl;
+
     public Product() {}
 
     public Product(String name, String description, int priceRetail, int priceWhole, ProductType type) {

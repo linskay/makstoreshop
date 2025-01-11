@@ -7,7 +7,7 @@ import java.util.List;
 
 @Getter
 public class ShoppingCart {
-    private List<Product> products = new ArrayList<>();
+    private final List<Product> products = new ArrayList<>();
 
     public void addProduct(Product product) {
         products.add(product);
