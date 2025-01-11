@@ -30,12 +30,62 @@ public class Image {
 
     public Image() {}
 
-    public Image(int id, String filePath, long fileSize, String mediaType, byte[] savesDataInDb, Product product) {
+    public Image(int id, String filePath, long fileSize, String mediaType,
+                 byte[] savesDataInDb, Product product) {
+
         this.id = id;
         this.filePath = filePath;
         this.fileSize = fileSize;
         this.mediaType = mediaType;
         this.savesDataInDb = savesDataInDb;
+        this.product = product;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public String getFilePath() {
+        return filePath;
+    }
+
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
+    }
+
+    public long getFileSize() {
+        return fileSize;
+    }
+
+    public void setFileSize(long fileSize) {
+        this.fileSize = fileSize;
+    }
+
+    public String getMediaType() {
+        return mediaType;
+    }
+
+    public void setMediaType(String mediaType) {
+        this.mediaType = mediaType;
+    }
+
+    public byte[] getSavesDataInDb() {
+        return savesDataInDb;
+    }
+
+    public void setSavesDataInDb(byte[] savesDataInDb) {
+        this.savesDataInDb = savesDataInDb;
+    }
+
+    public Product getProduct() {
+        return product;
+    }
+
+    public void setProduct(Product product) {
         this.product = product;
     }
 
