@@ -1,29 +1,23 @@
 package ru.shop.makstore.service;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import ru.shop.makstore.enumtypes.ProductType;
 import ru.shop.makstore.model.Product;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface ProductServiceInterface {
+    Product findProductById(int productId);
     Product createProduct(Product product);
+    Product updateProduct(int id, Product productForUpdate);
+    boolean deleteProduct(int id);
+    Optional<Product> getProductById(int id);
+    List<Product> getAllProducts();
+    Product findProduct(Integer id);
 
-    Optional<Product> updateProduct(int id, Product productForUpdate); // измененный метод
+    Page<Product> getAllProducts(Pageable pageable, ProductType type);
 
-    boolean deleteProduct(int id); // измененный метод
-
-    Optional<Product> getProductById(int id); // новый метод
-
-    List<Product> getAllProducts(); // измененный метод
-
-    Product findProduct(int id);
-
-    Product findByName(String name);
-
-    List<Product> findByDescription(String description); // измененный метод
-
-    List<Product> findByPriceRetail(Integer priceRetail); // измененный метод
-
-    List<Product> findByPriceWhole(Integer priceWhole); // измененный метод
+    Optional<Product> findByName(String name);
 }
-

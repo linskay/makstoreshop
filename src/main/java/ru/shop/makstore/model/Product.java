@@ -31,6 +31,8 @@ public class Product {
     @JoinColumn(name = "image_id")
     private Image image;
 
+    private String imageUrl;
+
     public Product() {}
 
     public Product(String name, String description, int priceRetail, int priceWhole, ProductType type) {

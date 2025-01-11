@@ -9,23 +9,8 @@ import java.util.Objects;
 @Entity
 @Table(name = "shopping_cart")
 public class ShoppingCart {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int id;
-    @Column(name = "telegram_id")
-    private int telegramId;
-    @Column(name = "product_id")
-    private int idProduct;
-    @Column(name = "product_name")
-    private String nameProduct;
-    @Column(name = "quantity")
-    private int quantityInPieces;
-    @Column(name = "is_wholesale")
-    private boolean isWholesale;
-    @Column(name = "price_retail")
-    private int priceRetail;
-    @Column(name = "price_whole")
-    private int priceWhole;
+
+    private final List<Product> products = new ArrayList<>();
 
     public ShoppingCart(int id, int quantityInPieces, double price, boolean isWholesale) {
     }

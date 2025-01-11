@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <!-- Basic -->
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <!-- Mobile Metas -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+    <!-- Site Metas -->
+    <link rel="icon" href="/images/fevicon/fevicon.png" type="image/gif"/>
+    <meta name="keywords" content=""/>
+    <meta name="description" content=""/>
+    <meta name="author" content=""/>
+
+    <title>MAK STORE</title>
+
+    <!-- bootstrap core css -->
+    <link rel="stylesheet" type="text/css" href="/css/bootstrap.css"/>
+
+    <!-- fonts style -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+    <!-- font awesome style -->
+    <link href="/css/font-awesome.min.css" rel="stylesheet"/>
+
+    <!-- responsive style -->
+    <link href="/css/responsive.css" rel="stylesheet"/>
+
+    <!-- Custom styles for this template -->
+    <link th:href="@{/css/style.css}" rel="stylesheet" />
+
+    <style>
+        /* Стили для пагинации */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            margin-bottom: 40px; /* Отступ до нижнего блока */
+        }
+
+        .pagination a {
+            display: inline-block;
+            margin: 0 5px;
+            padding: 10px 15px;
+            background-color: #8019c8; /* Фиолетовый фон */
+            color: #ffffff; /* Белый текст */
+            border-radius: 5px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .pagination a.active {
+            background-color: #541184; /* Темно-фиолетовый для активной кнопки */
+        }
+
+        .pagination a:hover:not(.active) {
+            background-color: #541184; /* Темно-фиолетовый при наведении */
+        }
+    </style>
+</head>
+<body>
+
+<!-- header section -->
+<header class="header_section">
+    <div class="container-fluid">
+        <nav class="navbar navbar-expand-lg custom_nav-container ">
+            <a class="navbar-brand" href="/">
+                <span>MAK STORE</span>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-toggle="collapse"
+                    data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class=""> </span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav  ">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="/"> Главная <span class="sr-only">(current)</span></a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/products"> Каталог </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Связаться с нами</a>
+                    </li>
+                </ul>
+                <div class="user_optio_box">
+                    <a href="">
+                        <i class="fa fa-user" aria-hidden="true"></i>
+                    </a>
+                    <a href="">
+                        <i class="fa fa-shopping-cart" aria-hidden="true"></i>
+                    </a>
+                </div>
+            </div>
+        </nav>
+    </div>
+</header>
+<!-- end header section -->
+
+<!-- product section -->
+<section class="product_section">
+    <div class="container">
+        <div class="product_heading">
+            <h2>Все товары</h2>
+            <!-- Фильтр по типу товара -->
+            <div class="filter-section">
+                <label for="productType">Фильтр по типу:</label>
+                <select id="productType" name="productType" onchange="filterProducts()">
+                    <option value="">Все товары</option>
+                    <option th:each="type : ${productTypes}"
+                            th:value="${type}"
+                            th:selected="${type == selectedType}"
+                            th:text="${productTypeTranslations[type]}"> <!-- Используем словарь для перевода -->
+                    </option>
+                </select>
+            </div>
+        </div>
+        <div class="product_container">
+
+        </div>
+        <div class="product_container">
+            <!-- Карточка товара -->
+            <div th:each="product : ${products}" class="box">
+                <div class="box-content">
+                    <div class="img-box">
+                        <img th:src="${product.imageUrl != null and !product.imageUrl.isEmpty() ? product.imageUrl : '/images/default.jpg'}" alt="Product Image">
+                    </div>
+                    <div class="detail-box">
+                        <div class="product-card">
+                            <div class="product-name">
+                                <h6 th:text="${product.name}">Название продукта</h6>
+                            </div>
+                            <div class="price-container">
+                                <div class="price-retail">
+                                    <span>Розница: </span>
+                                    <span th:text="${product.priceRetail}"></span>
+                                    <span>₽</span>
+                                </div>
+                                <div class="price-wholesale">
+                                    <span>Опт: </span>
+                                    <span th:text="${product.priceWhole}"></span>
+                                    <span>₽</span>
+                                </div>
+                            </div>
+                            <!-- Описание товара -->
+                            <div class="product-description">
+                                <p th:text="${product.description}">Описание товара</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="btn-box">
+                    <a href="#">Купить</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- end product section -->
+
+<!-- Пагинация -->
+<div class="pagination">
+    <a th:if="${currentPage > 0}" th:href="@{/products(page=${currentPage - 1}, size=12)}">Назад</a>
+    <a th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+       th:href="@{/products(page=${i}, size=12)}"
+       th:class="${i == currentPage} ? 'active'">
+        <span th:text="${i + 1}"></span>
+    </a>
+    <a th:if="${currentPage < totalPages - 1}" th:href="@{/products(page=${currentPage + 1}, size=12)}">Вперед</a>
+</div>
+
+<!-- Скрипт для фильтрации -->
+<script>
+    function filterProducts() {
+        const selectedType = document.getElementById("productType").value;
+        window.location.href = `/products?page=0&size=12&type=${selectedType}`;
+    }
+</script>
+
+<!-- info section -->
+<section class="info_section layout_padding2">
+    <div class="container">
+        <!-- Логотип MAK STORE -->
+        <div class="info_logo">
+            <h2>MAK STORE</h2>
+        </div>
+
+        <div class="row">
+            <!-- Блок 1: Контакты -->
+            <div class="col-md-4">
+                <div class="info_contact">
+                    <h5>Контакты</h5>
+                    <div class="contact-item">
+                        <div class="icon-text">
+                            <img src="/images/mail.png" alt="Email Icon" class="icon">
+                            <p>Эл. почта: <a href="mailto:ЗдесьВаша@gmail.com">ЗдесьВаша@gmail.com</a></p>
+                        </div>
+                    </div>
+                    <div class="contact-item">
+                        <div class="icon-text">
+                            <img src="/images/user.png" alt="User Icon" class="icon">
+                            <p>Менеджеры:</p>
+                        </div>
+                        <div class="telegram-managers">
+                            <a href="https://t.me/менеджер1" target="_blank">@менеджер1</a>
+                            <a href="https://t.me/менеджер2" target="_blank">@менеджер2</a>
+                            <a href="https://t.me/менеджер3" target="_blank">@менеджер3</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Блок 2: О нас -->
+            <div class="col-md-4">
+                <div class="info_about">
+                    <h5>О нас</h5>
+                    <p>Лучший магазин для заказа табачной продукции.</p>
+                    <p>Отзывы о нас: <a href="https://t.me/makstor_otzywy" target="_blank">https://t.me/makstor_otzywy</a></p>
+                </div>
+            </div>
+
+            <!-- Блок 3: Подписаться на обновления -->
+            <div class="col-md-4">
+                <div class="info_subscribe">
+                    <h5>Подписаться на обновления</h5>
+                    <a href="https://t.me/makstorebs" target="_blank" class="subscribe-btn">
+                        <span class="subscribe-text">Подписаться</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+<!-- end info_section -->
+
+<!-- Футер -->
+<footer class="footer_section">
+    <div class="container">
+        <p>
+            &copy; <span id="displayYear"></span>
+            <a href="https://t.me/samtakoy4/">Tg @samtakoy4</a>
+        </p>
+    </div>
+</footer>
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+
+<!-- Popper.js -->
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+
+<!-- Bootstrap JS -->
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+
+<!-- Custom JS -->
+<script th:src="@{/js/custom.js}"></script>
+
+<script>
+    document.getElementById("displayYear").innerHTML = new Date().getFullYear();
+
+    // Функция для автоматического уменьшения шрифта
+    function adjustFontSize(element) {
+        const maxHeight = 30; // Уменьшаем максимальную высоту для названия продукта
+        let fontSize = parseInt(window.getComputedStyle(element).fontSize);
+
+        while (element.scrollHeight > maxHeight && fontSize > 10) {
+            fontSize--;
+            element.style.fontSize = fontSize + "px";
+        }
+    }
+
+    // Применяем функцию ко всем элементам с классом .product-name
+    document.querySelectorAll(".product-name").forEach((element) => {
+        adjustFontSize(element);
+    });
+</script>
+</body>
+</html>
