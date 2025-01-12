@@ -5,26 +5,49 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import ru.shop.makstore.model.ContactRequest;
+import ru.shop.makstore.service.TelegramBot;
+import ru.shop.makstore.exception.TooManyRequestsException;
 
 @Controller
 @RequestMapping("/contact-us")
 public class ContactUsController {
 
-    // Обработка GET-запроса для отображения страницы
+    private final TelegramBot telegramBot;
+    private long lastRequestTime = 0; // Время последнего запроса
+    private static final long REQUEST_COOLDOWN = 10000; // 10 секунд задержки
+
+    public ContactUsController(TelegramBot telegramBot) {
+        this.telegramBot = telegramBot;
+    }
+
     @GetMapping
     public String showContactUsPage() {
         return "contact"; // Имя шаблона Thymeleaf (contact.html)
     }
 
-    // Обработка POST-запроса для отправки формы
     @PostMapping("/submit")
     public String submitContactRequest(ContactRequest contactRequest) {
-        // Логика обработки заявки
-        System.out.println("Новая заявка:");
-        System.out.println("Имя: " + contactRequest.getName());
-        System.out.println("Телефон: " + contactRequest.getPhone());
-        System.out.println("Telegram: " + contactRequest.getTelegram());
-        System.out.println("Сообщение: " + contactRequest.getMessage());
+        long currentTime = System.currentTimeMillis();
+
+        // Проверяем, прошло ли достаточно времени с последнего запроса
+        if (currentTime - lastRequestTime < REQUEST_COOLDOWN) {
+            throw new TooManyRequestsException("Пожалуйста, подождите перед отправкой следующего запроса.");
+        }
+
+        // Обновляем время последнего запроса
+        lastRequestTime = currentTime;
+
+        // Формируем сообщение для отправки в Telegram
+        String messageText = String.format(
+                "Поступила новая форма обратной связи:\nИмя: %s\nТелефон: %s\nTelegram: %s\nСообщение: %s",
+                contactRequest.getName(),
+                contactRequest.getPhone(),
+                contactRequest.getTelegram(),
+                contactRequest.getMessage()
+        );
+
+        // Отправляем сообщение через бота
+        telegramBot.sendContactRequest(messageText);
 
         // Перенаправление на страницу с сообщением об успешной отправке
         return "redirect:/contact-us?success";

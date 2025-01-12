@@ -87,6 +87,9 @@
       Заявка успешно отправлена!
     </div>
 
+    <!-- Сообщение об ошибке -->
+    <div th:if="${errorMessage != null}" class="alert alert-danger" th:text="${errorMessage}"></div>
+
     <div class="row">
       <div class="col-md-6">
         <div class="form_container">
