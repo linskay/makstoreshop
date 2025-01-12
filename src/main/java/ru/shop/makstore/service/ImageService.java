@@ -12,12 +12,11 @@ import ru.shop.makstore.repositories.ImageRepository;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
+import java.util.Optional;
 
 import static java.nio.file.StandardOpenOption.CREATE_NEW;
 
@@ -36,6 +35,10 @@ public class ImageService {
     }
 
     public void additionImage(int productId, MultipartFile file) throws IOException {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("File cannot be null or empty");
+        }
+
         // Получаем продукт по ID
         Product product = productService.getProductById(productId)
                 .orElseThrow(() -> new ProductNotFoundException(productId)); // Если продукт не найден, выбрасываем исключение
@@ -75,8 +78,11 @@ public class ImageService {
         if (optionalImage.isPresent()) {
             return optionalImage.get();
         } else {
-            // Возвращаем изображение по умолчанию
-            return createDefaultImage();
+            try {
+                return createDefaultImage();
+            } catch (IOException e) {
+                throw new IOException("Default image not found", e);
+            }
         }
     }
 
@@ -99,7 +105,6 @@ public class ImageService {
         return defaultImage;
     }
 
-
     private byte[] generateImage(Path filePath) throws IOException {
         try (InputStream is = Files.newInputStream(filePath);
              BufferedInputStream bis = new BufferedInputStream(is, 1024);
@@ -111,39 +116,54 @@ public class ImageService {
                 throw new IOException("Could not read image from file: " + filePath);
             }
 
-            // Здесь ты можешь создать уменьшенную версию фотки
+            // Создаем уменьшенную версию изображения
             int newWidth = 150;
             int newHeight = (int) ((newWidth / (double) image.getWidth()) * image.getHeight());
 
             BufferedImage preview = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
             Graphics2D graphics = preview.createGraphics();
+            graphics.drawImage(image, 0, 0, newWidth, newHeight, null);
+            graphics.dispose();
+
+            // Записываем изображение в ByteArrayOutputStream
+            ImageIO.write(preview, "png", baos);
+            return baos.toByteArray();
+        }
+    }
 
     private byte[] resizeImage(byte[] originalImage, int width, int height) throws IOException {
-        // Чтение оригинального изображения
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(originalImage);
-        BufferedImage bufferedImage = ImageIO.read(inputStream);
-
-        if (bufferedImage == null) {
-            throw new IOException("Could not read image");
+        if (originalImage == null) {
+            throw new IllegalArgumentException("Original image bytes cannot be null");
         }
 
-        // Создание нового изображения с заданными размерами
-        BufferedImage resizedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-        Graphics2D graphics = resizedImage.createGraphics();
+        // Чтение оригинального изображения
+        try (ByteArrayInputStream inputStream = new ByteArrayInputStream(originalImage)) {
+            BufferedImage bufferedImage = ImageIO.read(inputStream);
 
-        // Масштабирование изображения
-        graphics.drawImage(bufferedImage, 0, 0, width, height, null);
-        graphics.dispose();
+            if (bufferedImage == null) {
+                throw new IOException("Could not read image");
+            }
 
-        // Запись изображения в массив байтов
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        ImageIO.write(resizedImage, "jpg", outputStream);
+            // Создание нового изображения с заданными размерами
+            BufferedImage resizedImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+            Graphics2D graphics = resizedImage.createGraphics();
 
-        return outputStream.toByteArray();
+            // Масштабирование изображения
+            graphics.drawImage(bufferedImage, 0, 0, width, height, null);
+            graphics.dispose();
+
+            // Запись изображения в массив байтов
+            try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+                ImageIO.write(resizedImage, "jpg", outputStream);
+                return outputStream.toByteArray();
+            }
+        }
     }
 
     private String getExtension(String filename) {
-        // Получение расширения файла
+        if (filename == null || filename.lastIndexOf(".") == -1) {
+            throw new IllegalArgumentException("Filename must contain an extension");
+        }
         return filename.substring(filename.lastIndexOf(".") + 1);
     }
 }

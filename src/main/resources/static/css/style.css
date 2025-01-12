@@ -1158,5 +1158,36 @@ a:focus {
     background-color: #ffffff; /* Белый фон */
 }
 
+/* Стили для выпадающего списка */
+select#productType {
+    padding: 5px 10px;
+    border: 1px solid #8019c8;
+    border-radius: 5px;
+    font-size: 14px;
+    color: black; /* Черный цвет текста */
+    background-color: white; /* Белый фон */
+    cursor: pointer;
+    appearance: none; /* Убираем стандартный стиль браузера */
+    -webkit-appearance: none; /* Для Safari */
+    -moz-appearance: none; /* Для Firefox */
+}
+
+/* Стили для элементов <option> */
+select#productType option {
+    color: black; /* Черный цвет текста */
+    background-color: white; /* Белый фон */
+    padding: 5px; /* Отступы внутри option */
+}
+
+/* Стили для hover и selected */
+select#productType option:hover {
+    background-color: #f0f0f0; /* Цвет фона при наведении */
+}
+
+select#productType option:checked {
+    background-color: #8019c8; /* Цвет фона выбранного элемента */
+    color: white; /* Цвет текста выбранного элемента */
+}
+
 
 /*# sourceMappingURL=style.css.map */
