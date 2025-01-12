@@ -22,6 +22,6 @@ public class ProductWebController {
     public String getAllProducts(Model model) {
         List<Product> products = productService.getAllProducts();
         model.addAttribute("products", products);
-        return "products";
+        return "product";
     }
 }
