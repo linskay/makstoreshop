@@ -2,9 +2,18 @@ package ru.shop.makstore.service;
 
 import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+
+import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.FileSystemResource;
+
 import org.springframework.stereotype.Component;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
+import org.springframework.web.multipart.MultipartFile;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.TelegramBotsApi;
 import org.telegram.telegrambots.meta.api.methods.commands.SetMyCommands;
@@ -25,6 +34,8 @@ import ru.shop.makstore.model.Product;
 import ru.shop.makstore.enumtypes.ProductType;
 
 import java.util.*;
+
+import java.io.File;
 
 @Component
 public class TelegramBot extends TelegramLongPollingBot {

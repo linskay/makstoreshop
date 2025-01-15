@@ -4,13 +4,19 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import ru.shop.makstore.enumtypes.ProductType;
 import ru.shop.makstore.exception.ProductNotFoundException;
 import ru.shop.makstore.model.Product;
+import ru.shop.makstore.service.CartService;
+import ru.shop.makstore.service.ExcelService;
 import ru.shop.makstore.service.ProductService;
+import ru.shop.makstore.service.TelegramBotAdmin;
 
+import java.io.File;
+import java.util.ArrayList;
 import java.util.Map;
 
 @RestController
@@ -20,9 +26,18 @@ import java.util.Map;
 public class AdminController {
 
     private final ProductService productService;
+    private final ExcelService excelService;
+    private final TelegramBotAdmin telegramBotAdmin;
+    private final CartService cartService;
+    @Value("${telegram.chat.id}")
+    private String chatId;
 
-    public AdminController(ProductService productService) {
+    public AdminController(ProductService productService, ExcelService excelService,
+                           TelegramBotAdmin telegramBotAdmin, CartService cartService) {
         this.productService = productService;
+        this.excelService = excelService;
+        this.telegramBotAdmin = telegramBotAdmin;
+        this.cartService = cartService;
     }
 
     @PostMapping("/")
@@ -69,5 +84,33 @@ public class AdminController {
         } catch (ProductNotFoundException e) {
             return ResponseEntity.notFound().build(); // 404 Not Found
         }
+    }
+
+    @PostMapping("/checkout")
+    @Operation(
+            summary = "Оформить заказ",
+            description = "Обрабатывает заказ и отправляет файл Excel в Telegram.",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Заказ обработан и файл отправлен"),
+                    @ApiResponse(responseCode = "400", description = "Некорректные данные"),
+                    @ApiResponse(responseCode = "500", description = "Внутренняя ошибка сервера")
+            })
+    public ResponseEntity<String> checkout(@RequestParam String telegramId) {
+        // Получаем товары из корзины пользователя
+        ArrayList<Product> products = cartService.getProductsForUser(telegramId);
+
+        if (products.isEmpty()) {
+            return ResponseEntity.badRequest().body("Корзина пуста.");
+        }
+        // Создаем Excel файл из товаров
+        File excelFile = excelService.createExcelFile(products);
+
+        // Отправляем файл в Telegram
+        telegramBotAdmin.sendExcelFile(chatId, excelFile);
+
+        // Очистка корзины после оформления заказа
+        cartService.clearCartForUser(telegramId);
+
+        return ResponseEntity.ok("Заказ обработан и файл отправлен в Telegram.");
     }
 }
