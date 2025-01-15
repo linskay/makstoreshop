@@ -47,12 +47,12 @@ public class ProductService implements ProductServiceInterface {
     }
 
     @Override
-    public boolean deleteProduct(int id) {
+    public void deleteProduct(int id) {
         if (productRepository.existsById((long) id)) {
             productRepository.deleteById((long) id);
-            return true;
+        } else {
+            throw new ProductNotFoundException(id); // Продукт не найден
         }
-        throw new ProductNotFoundException(id);
     }
 
     @Override

@@ -12,7 +12,7 @@ public interface ProductServiceInterface {
     Product findProductById(int productId);
     Product createProduct(Product product);
     Product updateProduct(int id, Product productForUpdate);
-    boolean deleteProduct(int id);
+    void deleteProduct(int id);
     Optional<Product> getProductById(int id);
     List<Product> getAllProducts();
     Product findProduct(Integer id);

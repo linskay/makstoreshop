@@ -6,9 +6,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-// import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import ru.shop.makstore.enumtypes.ProductType;
+import ru.shop.makstore.exception.ProductNotFoundException;
 import ru.shop.makstore.model.Product;
 import ru.shop.makstore.service.CartService;
 import ru.shop.makstore.service.ExcelService;
@@ -22,7 +22,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/admin/products")
 @Tag(name = "Admin Product API", description = "API для управления товарами (доступно только администраторам)")
-//@PreAuthorize("hasRole('ADMIN')") // Только админы имеют доступ ко всем методам
+
 public class AdminController {
 
     private final ProductService productService;
@@ -50,6 +50,7 @@ public class AdminController {
                     @ApiResponse(responseCode = "500", description = "Внутренняя ошибка сервера")
             }
     )
+
     public ResponseEntity<Product> createProduct(
             @Parameter(description = "Данные товара в формате JSON", required = true, example = "{\"name\": \"Новый товар\", \"description\": \"Описание товара\", \"priceRetail\": 1000, \"priceWhole\": 800, \"type\": \"ELECTRONIC_CIGARETTES\"}")
             @RequestBody Map<String, Object> payload) {
@@ -77,10 +78,12 @@ public class AdminController {
     public ResponseEntity<Void> deleteProduct(
             @Parameter(description = "ID товара", required = true, example = "1")
             @PathVariable Integer id) {
-        if (productService.deleteProduct(id)) {
-            return ResponseEntity.noContent().build();
+        try {
+            productService.deleteProduct(id);
+            return ResponseEntity.noContent().build(); // 204 No Content
+        } catch (ProductNotFoundException e) {
+            return ResponseEntity.notFound().build(); // 404 Not Found
         }
-        return ResponseEntity.notFound().build();
     }
 
     @PostMapping("/checkout")
