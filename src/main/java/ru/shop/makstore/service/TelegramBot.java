@@ -67,20 +67,18 @@ public class TelegramBot extends TelegramLongPollingBot {
         }
     }
 
-
     private void setCommands() {
         try {
             List<BotCommand> commands = new ArrayList<>();
             commands.add(new BotCommand("/createproduct", "Создать новый продукт"));
             commands.add(new BotCommand("/deleteproduct", "Удалить продукт по ID"));
-            commands.add(new BotCommand("/updatebot", "Обновить бота"));
+            commands.add(new BotCommand("/restart", "Перезапустить бота"));
 
             execute(new SetMyCommands(commands, new BotCommandScopeDefault(), null));
         } catch (TelegramApiException e) {
             e.printStackTrace();
         }
     }
-
 
     public void sendContactRequest(String messageText) {
         try {
@@ -152,12 +150,12 @@ public class TelegramBot extends TelegramLongPollingBot {
             } else if (messageText.equals("/deleteproduct") || messageText.equalsIgnoreCase("Удалить продукт")) {
                 sendMessage(chatId, "Введите ID продукта для удаления:");
                 userStates.put(chatId, UserState.AWAITING_DELETE_ID); // Устанавливаем состояние
-            } else if (messageText.equals("/updatebot") || messageText.equalsIgnoreCase("Обновить бота")) {
-                sendMessage(chatId, "Функция обновления бота в разработке.");
+            } else if (messageText.equals("/restart") || messageText.equalsIgnoreCase("Перезапустить бота")) {
+                sendWelcomeMessage(chatId);
             } else if (userStates.containsKey(chatId)) {
                 handleProductCreation(chatId, messageText);
             } else {
-                sendMessage(chatId, "Неизвестная команда. Используйте /createproduct, /deleteproduct или /updatebot.");
+                sendMessage(chatId, "Неизвестная команда. Используйте /createproduct, /deleteproduct или /restart.");
             }
         }
     }
@@ -166,28 +164,62 @@ public class TelegramBot extends TelegramLongPollingBot {
         long chatId = update.getCallbackQuery().getMessage().getChatId();
         String callbackData = update.getCallbackQuery().getData();
 
-        // Проверяем, что callbackData не null
-        if (callbackData == null) {
-            sendMessage(chatId, "Ошибка: callbackData отсутствует.");
-            return;
-        }
-
-        // Логируем callbackData для отладки
-        System.out.println("Received callbackData: " + callbackData);
-
-        // Проверяем, что callbackData начинается с "type_"
         if (callbackData.startsWith("type_")) {
-            String russianName = callbackData.substring(5); // Убираем префикс "type_"
-            ProductType type = ProductType.fromRussianName(russianName);
-
+            // Обработка выбора типа продукта
+            String typeName = callbackData.substring(5);
+            ProductType type = ProductType.fromRussianName(typeName);
             Product product = tempProducts.get(chatId);
             product.setType(type);
-
-            // Переводим пользователя в состояние ожидания изображения
             userStates.put(chatId, UserState.AWAITING_IMAGE);
-            sendMessage(chatId, "Теперь загрузите изображение для продукта.");
-        } else {
-            sendMessage(chatId, "Неизвестная команда.");
+
+            // Предлагаем загрузить изображение или сохранить без него
+            SendMessage message = new SendMessage();
+            message.setChatId(String.valueOf(chatId));
+            message.setText("Загрузите изображение или нажмите 'Сохранить без изображения'.");
+
+            InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
+            List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+
+            InlineKeyboardButton saveWithoutImageButton = new InlineKeyboardButton();
+            saveWithoutImageButton.setText("Сохранить без изображения");
+            saveWithoutImageButton.setCallbackData("save_without_image");
+            rows.add(Collections.singletonList(saveWithoutImageButton));
+
+            keyboardMarkup.setKeyboard(rows);
+            message.setReplyMarkup(keyboardMarkup);
+
+            try {
+                execute(message);
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
+            }
+        } else if (callbackData.equals("save_without_image")) {
+            // Получаем продукт из временных данных
+            Product product = tempProducts.get(chatId);
+
+            // Сохраняем продукт в базу данных и получаем его ID
+            Product savedProduct = adminController.createProduct(Map.of(
+                    "name", product.getName(),
+                    "description", product.getDescription(),
+                    "priceRetail", product.getPriceRetail(),
+                    "priceWhole", product.getPriceWhole(),
+                    "type", product.getType().name()
+            )).getBody(); // Получаем сохранённый продукт
+
+            if (savedProduct == null || savedProduct.getId() == null) {
+                sendMessage(chatId, "Ошибка при сохранении продукта.");
+                return;
+            }
+
+            // Отправляем сообщение об успешном добавлении
+            sendMessage(chatId, "Продукт успешно создан: " + savedProduct.getName());
+
+            // Показываем главное меню
+            sendWelcomeMessage(chatId);
+
+            // Очищаем состояние
+            userStates.remove(chatId);
+            tempProducts.remove(chatId);
         }
     }
 
@@ -223,13 +255,38 @@ public class TelegramBot extends TelegramLongPollingBot {
             // Сохраняем изображение через ImageService
             imageService.addImageFromTelegram(savedProduct.getId(), fileId);
 
+            // Отправляем сообщение об успешном добавлении
             sendMessage(chatId, "Продукт успешно создан: " + savedProduct.getName());
+
+            // Показываем главное меню
+            sendWelcomeMessage(chatId);
 
             // Очищаем состояние
             userStates.remove(chatId);
             tempProducts.remove(chatId);
         } else {
-            sendMessage(chatId, "Пожалуйста, начните процесс создания продукта с команды /createproduct.");
+            // Если пользователь не загрузил изображение, предлагаем кнопку "Сохранить без изображения"
+            SendMessage message = new SendMessage();
+            message.setChatId(String.valueOf(chatId));
+            message.setText("Загрузите изображение или нажмите 'Сохранить без изображения'.");
+
+            // Создаем inline-кнопку
+            InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
+            List<List<InlineKeyboardButton>> rows = new ArrayList<>();
+
+            InlineKeyboardButton saveWithoutImageButton = new InlineKeyboardButton();
+            saveWithoutImageButton.setText("Сохранить без изображения");
+            saveWithoutImageButton.setCallbackData("save_without_image");
+
+            rows.add(Collections.singletonList(saveWithoutImageButton));
+            keyboardMarkup.setKeyboard(rows);
+            message.setReplyMarkup(keyboardMarkup);
+
+            try {
+                execute(message);
+            } catch (TelegramApiException e) {
+                e.printStackTrace();
+            }
         }
     }
 
@@ -251,11 +308,6 @@ public class TelegramBot extends TelegramLongPollingBot {
         KeyboardRow row2 = new KeyboardRow();
         row2.add(new KeyboardButton("Удалить продукт"));
         keyboard.add(row2);
-
-        // Кнопка "Обновить бота"
-        KeyboardRow row3 = new KeyboardRow();
-        row3.add(new KeyboardButton("Обновить бота"));
-        keyboard.add(row3);
 
         keyboardMarkup.setKeyboard(keyboard);
         keyboardMarkup.setResizeKeyboard(true); // Автоматически изменять размер клавиатуры
@@ -336,6 +388,7 @@ public class TelegramBot extends TelegramLongPollingBot {
         InlineKeyboardMarkup keyboardMarkup = new InlineKeyboardMarkup();
         List<List<InlineKeyboardButton>> rows = new ArrayList<>();
 
+        // Добавляем кнопки для выбора типа продукта
         for (ProductType type : ProductType.values()) {
             InlineKeyboardButton button = new InlineKeyboardButton();
             button.setText(type.getRussianName());
