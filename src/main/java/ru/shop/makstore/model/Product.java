@@ -34,15 +34,25 @@ public class Product {
 
     private String imageUrl;
 
+    private int retailQuantity;
+
+    private int wholeQuantity;
+
     public Product() {
     }
 
-    public Product(String name, String description, int priceRetail, int priceWhole, ProductType type) {
+    public Product(Integer id, String name, String description, int priceRetail, int priceWhole,
+                   ProductType type, Image image, String imageUrl, int retailQuantity, int wholeQuantity) {
+        this.id = id;
         this.name = name;
         this.description = description;
         this.priceRetail = priceRetail;
         this.priceWhole = priceWhole;
         this.type = type;
+        this.image = image;
+        this.imageUrl = imageUrl;
+        this.retailQuantity = retailQuantity;
+        this.wholeQuantity = wholeQuantity;
     }
 
     @Override
@@ -50,12 +60,21 @@ public class Product {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Product product = (Product) o;
-        return id.equals(product.id);
+        return priceRetail == product.priceRetail
+                && priceWhole == product.priceWhole
+                && retailQuantity == product.retailQuantity
+                && wholeQuantity == product.wholeQuantity
+                && Objects.equals(id, product.id)
+                && Objects.equals(name, product.name)
+                && Objects.equals(description, product.description)
+                && type == product.type && Objects.equals(image, product.image)
+                && Objects.equals(imageUrl, product.imageUrl);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(id, name, description, priceRetail, priceWhole,
+                type, image, imageUrl, retailQuantity, wholeQuantity);
     }
 
     @Override
@@ -67,6 +86,10 @@ public class Product {
                 ", priceRetail=" + priceRetail +
                 ", priceWhole=" + priceWhole +
                 ", type=" + type +
+                ", image=" + image +
+                ", imageUrl='" + imageUrl + '\'' +
+                ", retailQuantity=" + retailQuantity +
+                ", wholeQuantity=" + wholeQuantity +
                 '}';
     }
 }
