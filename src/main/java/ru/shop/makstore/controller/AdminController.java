@@ -50,10 +50,7 @@ public class AdminController {
                     @ApiResponse(responseCode = "500", description = "Внутренняя ошибка сервера")
             }
     )
-
-    public ResponseEntity<Product> createProduct(
-            @Parameter(description = "Данные товара в формате JSON", required = true, example = "{\"name\": \"Новый товар\", \"description\": \"Описание товара\", \"priceRetail\": 1000, \"priceWhole\": 800, \"type\": \"ELECTRONIC_CIGARETTES\"}")
-            @RequestBody Map<String, Object> payload) {
+    public ResponseEntity<Product> createProduct(@RequestBody Map<String, Object> payload) {
         String type = (String) payload.get("type");
         Product product = new Product();
         product.setName((String) payload.get("name"));
@@ -62,7 +59,10 @@ public class AdminController {
         product.setPriceWhole((Integer) payload.get("priceWhole"));
         product.setType(ProductType.valueOf(type));
 
-        return ResponseEntity.ok(productService.createProduct(product));
+        // Сохраняем продукт в базе данных
+        Product savedProduct = productService.createProduct(product);
+
+        return ResponseEntity.ok(savedProduct); // Возвращаем сохранённый продукт с ID
     }
 
     @DeleteMapping("/{id}")

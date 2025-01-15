@@ -18,7 +18,6 @@ import java.util.Optional;
 
 public class ProductService implements ProductServiceInterface {
 
-
     private final ProductRepository productRepository;
 
     @Autowired
@@ -38,12 +37,17 @@ public class ProductService implements ProductServiceInterface {
     }
 
     @Override
-    public Product updateProduct(int id, Product productForUpdate) {
+    public Product updateProductId(int id, Product productForUpdate) {
         if (productRepository.existsById((long) id)) {
             productForUpdate.setId(id);
             return productRepository.save(productForUpdate);
         }
         throw new ProductNotFoundException(id);
+    }
+
+    @Override
+    public Product updateProduct(Product product) {
+        return productRepository.save(product);
     }
 
     @Override

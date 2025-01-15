@@ -10,11 +10,20 @@ import java.util.Optional;
 
 public interface ProductServiceInterface {
     Product findProductById(int productId);
+
     Product createProduct(Product product);
-    Product updateProduct(int id, Product productForUpdate);
+
+
+    Product updateProductId(int id, Product productForUpdate);
+
+    Product updateProduct(Product product);
+
     void deleteProduct(int id);
+
     Optional<Product> getProductById(int id);
+
     List<Product> getAllProducts();
+
     Product findProduct(Integer id);
 
     Page<Product> getAllProducts(Pageable pageable, ProductType type);
