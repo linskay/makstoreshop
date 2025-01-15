@@ -1,8 +1,5 @@
 package ru.shop.makstore.enumtypes;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public enum ProductType {
     ELECTRONIC_CIGARETTES("Электронные сигареты"),
     VAPE("Вейп"),

@@ -28,14 +28,16 @@ public class Product {
     @Column(nullable = false)
     private ProductType type;
 
-    @OneToOne
-    @JoinColumn(name = "image_id")
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "image_id", referencedColumnName = "id")
     private Image image;
 
     private String imageUrl;
 
+    @Transient
     private int retailQuantity;
 
+    @Transient
     private int wholeQuantity;
 
     public Product() {
