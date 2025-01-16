@@ -21,18 +21,12 @@ public class TelegramBotAdmin extends TelegramLongPollingBot {
 
     public void sendExcelFile(String chatId, File file) {
         try {
-            // URL для отправки файла
             String url = "https://api.telegram.org/bot" + adminBotToken + "/sendDocument";
-
-            // Создаем экземпляр RestTemplate
-            RestTemplate restTemplate = new RestTemplate();
             MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
-
-            // Добавляем ID чата и документ как FileSystemResource
             body.add("chat_id", chatId);
             body.add("document", new FileSystemResource(file));
+            body.add("caption", "Поступил новый заказ");
 
-            // Отправляем запрос
             restTemplate.postForObject(url, body, String.class);
         } catch (Exception e) {
             e.printStackTrace();
