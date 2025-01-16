@@ -7,7 +7,6 @@ import org.springframework.transaction.annotation.Transactional;
 import org.telegram.telegrambots.bots.TelegramLongPollingBot;
 import org.telegram.telegrambots.meta.api.methods.GetFile;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
-import org.telegram.telegrambots.meta.generics.TelegramBot;
 import ru.shop.makstore.exception.ProductNotFoundException;
 import ru.shop.makstore.model.Image;
 import ru.shop.makstore.model.Product;
@@ -24,7 +23,7 @@ public class ImageService {
     private final ImageRepository imageRepository;
     private final TelegramLongPollingBot telegramBot; // Используем конкретный тип
 
-    public ImageService(ProductService productService, ImageRepository imageRepository,  @Lazy TelegramLongPollingBot telegramBot) {
+    public ImageService(ProductService productService, ImageRepository imageRepository, @Lazy TelegramLongPollingBot telegramBot) {
         this.productService = productService;
         this.imageRepository = imageRepository;
         this.telegramBot = telegramBot;
@@ -55,7 +54,7 @@ public class ImageService {
         // Создаем новое изображение или обновляем существующее
         Image image = imageRepository.findByProductId(productId).orElse(new Image());
         image.setFilePath(filePath);
-     //   image.setFileId(fileId);
+        //   image.setFileId(fileId);
         image.setMediaType("image/jpeg"); // Указываем тип медиа
         image.setProduct(product); // Устанавливаем связь с продуктом
 
