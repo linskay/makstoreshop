@@ -2,8 +2,11 @@ package ru.shop.makstore.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import ru.shop.makstore.model.Product;
 import ru.shop.makstore.service.CartService;
@@ -12,9 +15,12 @@ import ru.shop.makstore.service.ProductService;
 import ru.shop.makstore.service.TelegramBotAdmin;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
-@RestController
+@Controller
 @RequestMapping("/order")
+@Tag(name = "Order API", description = "API для управления корзиной")
 public class OrderController {
     private final CartService cartService;
     private final ProductService productService;
@@ -31,32 +37,38 @@ public class OrderController {
         this.telegramBotAdmin = telegramBotAdmin;
     }
 
-    @PostMapping("/add-to-cart")
-    @Operation(
-            summary = "Добавить товар в корзину",
-            description = "Добавляет товар в корзину с указанием количества (розница и опт).",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Товар добавлен в корзину"),
-                    @ApiResponse(responseCode = "400", description = "Некорректные данные"),
-                    @ApiResponse(responseCode = "500", description = "Внутренняя ошибка сервера")
-            })
-    public ResponseEntity<String> addToCart(
-            @RequestParam int productId, // ID товара
-            @RequestParam int retailQuantity, // Количество для розницы
-            @RequestParam int wholeQuantity // Количество для опта
-    ) {
-        try {
-            // Получаем товар из базы данных
-            Product product = productService.findProductById(productId);
+    @GetMapping("/cart")
+    public String viewCart(Model model) {
+        var cartItems = cartService.getCartItems();
+        int total = cartItems.stream()
+                .mapToInt(item -> item.getProduct().getPriceRetail() * item.getRetailQuantity() +
+                        item.getProduct().getPriceWhole() * item.getWholeQuantity())
+                .sum();
 
-            // Добавляем товар в корзину
-            cartService.addProductToCart(product, retailQuantity, wholeQuantity);
-
-            return ResponseEntity.ok("Товар добавлен в корзину.");
-        } catch (Exception e) {
-            return ResponseEntity.internalServerError().body("Ошибка при добавлении товара в корзину.");
-        }
+        model.addAttribute("cartItems", cartItems);
+        model.addAttribute("total", total);
+        return "cart"; // Имя шаблона Thymeleaf (cart.html)
     }
+
+    @PostMapping("/add-to-cart")
+    @ResponseBody // сохраняем @ResponseBody, так как этот метод возвращает JSON
+    public Map<String, Object> addToCart(
+            @RequestParam int productId,
+            @RequestParam int retailQuantity,
+            @RequestParam int wholeQuantity
+    ) {
+        Map<String, Object> response = new HashMap<>();
+        try {
+            Product product = productService.findProductById(productId);
+            cartService.addProductToCart(product, retailQuantity, wholeQuantity);
+            response.put("success", true);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", e.getMessage());
+        }
+        return response;
+    }
+
 
     @PostMapping("/send-to-telegram")
     @Operation(
