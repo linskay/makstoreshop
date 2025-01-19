@@ -1,33 +1,54 @@
 package ru.shop.makstore.service;
 
 import org.springframework.stereotype.Service;
+import ru.shop.makstore.model.CartItem;
 import ru.shop.makstore.model.Product;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-
-//import org.springframework.stereotype.Service;
-//import ru.shop.makstore.model.Product;
-//import ru.shop.makstore.model.ShoppingCart;
+import java.util.List;
+import java.util.Optional;
 
 @Service
 public class CartService {
-    private final Map<String, ArrayList<Product>> userCarts = new HashMap<>();
+    private final List<CartItem> cart = new ArrayList<>();
 
-    public ArrayList<Product> getProductsForUser(String userId) {
-        return userCarts.getOrDefault(userId, new ArrayList<>());
+    /**
+     * Добавляет товар в корзину.
+     *
+     * @param product         Товар для добавления.
+     * @param retailQuantity  Количество для розницы.
+     * @param wholeQuantity   Количество для опта.
+     */
+    public void addProductToCart(Product product, int retailQuantity, int wholeQuantity) {
+        // Проверяем, есть ли уже такой товар в корзине
+        Optional<CartItem> existingItem = cart.stream()
+                .filter(item -> item.getProduct().getId().equals(product.getId()))
+                .findFirst();
+
+        if (existingItem.isPresent()) {
+            // Обновляем количество, если товар уже есть в корзине
+            CartItem item = existingItem.get();
+            item.setRetailQuantity(item.getRetailQuantity() + retailQuantity);
+            item.setWholeQuantity(item.getWholeQuantity() + wholeQuantity);
+        } else {
+            // Добавляем новый товар в корзину
+            cart.add(new CartItem(product, retailQuantity, wholeQuantity));
+        }
     }
-    public void addProductToCart(String userId, Product product) {
-        userCarts.computeIfAbsent(userId, k -> new ArrayList<>()).add(product);
+
+    /**
+     * Возвращает список товаров в корзине.
+     *
+     * @return Список товаров в корзине.
+     */
+    public List<CartItem> getCartItems() {
+        return cart;
     }
-    public void clearCartForUser(String userId) {
-        userCarts.remove(userId);
+
+    /**
+     * Очищает корзину.
+     */
+    public void clearCart() {
+        cart.clear();
     }
-    //    private final ShoppingCart cart = new ShoppingCart();
-//    public void addProduct(Product product, int quantity) {
-//
-//    }
 }
-
-

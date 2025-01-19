@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Корзина - MAK STORE</title>
+  <!-- Basic -->
+  <meta charset="utf-8"/>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+  <!-- Mobile Metas -->
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+  <!-- Site Metas -->
+  <link rel="icon" th:href="@{/images/fevicon/fevicon.png}" type="image/gif"/>
+  <meta name="keywords" content=""/>
+  <meta name="description" content=""/>
+  <meta name="author" content=""/>
+
+  <title>MAK STORE</title>
+
+  <!-- bootstrap core css -->
+  <link rel="stylesheet" type="text/css" th:href="@{/css/bootstrap.css}"/>
+
+  <!-- fonts style -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+
+  <!-- font awesome style -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+  <!-- Custom styles for this template -->
+  <link th:href="@{/css/style.css}" rel="stylesheet"/>
+  <!-- responsive style -->
+  <link th:href="@{/css/responsive.css}" rel="stylesheet"/>
+</head>
+<body>
+<div class="hero_area">
+  <!-- Шапка -->
+  <header class="header_section">
+    <div class="container-fluid">
+      <nav class="navbar navbar-expand-lg custom_nav-container">
+        <a class="navbar-brand" th:href="@{/}">
+          <span>MAK STORE</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse"
+                data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
+                aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+          <ul class="navbar-nav">
+            <li class="nav-item">
+              <a class="nav-link" th:href="@{/}"> Главная <span class="sr-only">(current)</span></a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" th:href="@{/products}"> Каталог </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" th:href="@{/contact-us}"> Связаться с нами </a>
+            </li>
+          </ul>
+          <div class="user_optio_box">
+            <a th:href="@{/order/cart}">
+              <i class="fas fa-shopping-cart" aria-hidden="true"></i>
+            </a>
+          </div>
+        </div>
+      </nav>
+    </div>
+  </header>
+  <!-- end header section -->
+
+  <!-- Секция корзины -->
+  <section class="cart_section">
+    <div class="container">
+      <div class="cart_heading">
+        <h2>Ваша корзина</h2>
+      </div>
+      <div class="cart_container">
+        <div th:if="${cartItems == null or cartItems.empty}">
+          <p>Корзина пуста.</p>
+        </div>
+        <div th:unless="${cartItems == null or cartItems.empty}">
+          <table class="table">
+            <thead>
+            <tr>
+              <th>Товар</th>
+              <th>Розница (шт)</th>
+              <th>Опт (шт)</th>
+              <th>Стоимость</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="item : ${cartItems}">
+              <td th:text="${item.product.name}">Товар</td>
+              <td th:text="${item.retailQuantity}">0</td>
+              <td th:text="${item.wholeQuantity}">0</td>
+              <td th:text="${item.product.priceRetail * item.retailQuantity + item.product.priceWhole * item.wholeQuantity}">0</td>
+            </tr>
+            </tbody>
+          </table>
+          <p>Итого: <span th:text="${total}">0</span> руб.</p>
+          <form>
+            <div class="btn-box">
+              <a href="#" id="sendOrderBtn">Отправить в Telegram</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- info section -->
+  <section class="info_section layout_padding2">
+    <div class="container">
+      <!-- Логотип MAK STORE -->
+      <div class="info_logo">
+        <h2>MAK STORE</h2>
+      </div>
+
+      <div class="row">
+        <!-- Блок 1: Контакты -->
+        <div class="col-md-4">
+          <div class="info_contact">
+            <h5>Контакты</h5>
+            <div class="contact-item">
+              <div class="icon-text">
+                <img src="/images/mail.png" alt="Email Icon" class="icon">
+                <p>Эл. почта: <a href="mailto:ЗдесьВаша@gmail.com">ЗдесьВаша@gmail.com</a></p>
+              </div>
+            </div>
+            <div class="contact-item">
+              <div class="icon-text">
+                <img src="/images/user.png" alt="User Icon" class="icon">
+                <p>Менеджеры:</p>
+              </div>
+              <div class="telegram-managers">
+                <a href="https://t.me/менеджер1" target="_blank">@менеджер1</a>
+                <a href="https://t.me/менеджер2" target="_blank">@менеджер2</a>
+                <a href="https://t.me/менеджер3" target="_blank">@менеджер3</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Блок 2: О нас -->
+        <div class="col-md-4">
+          <div class="info_about">
+            <h5>О нас</h5>
+            <p>Лучший магазин для заказа табачной продукции.</p>
+            <p>Отзывы о нас: <a href="https://t.me/makstor_otzywy" target="_blank">https://t.me/makstor_otzywy</a></p>
+          </div>
+        </div>
+
+        <!-- Блок 3: Подписаться на обновления -->
+        <div class="col-md-4">
+          <div class="info_subscribe">
+            <h5>Подписаться на обновления</h5>
+            <a href="https://t.me/makstorebs" target="_blank" class="subscribe-btn">
+              <span class="subscribe-text">Подписаться</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  <!-- end info_section -->
+
+  <!-- Футер -->
+  <footer class="footer_section">
+    <div class="container">
+      <p>
+        &copy; <span id="displayYear"></span>
+        <a href="https://t.me/samtakoy4/">Tg @samtakoy4</a>
+      </p>
+    </div>
+  </footer>
+
+  <!-- Подключаем скрипты -->
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+  <script th:src="@{/js/custom.js}"></script>
+  <script>
+    document.getElementById("displayYear").innerHTML = new Date().getFullYear();
+  </script>
+</body>
+</html>

@@ -18,7 +18,7 @@
     <link rel="stylesheet" type="text/css" href="/css/bootstrap.css"/>
 
     <!-- fonts style -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <!-- font awesome style -->
     <link href="/css/font-awesome.min.css" rel="stylesheet"/>
@@ -76,21 +76,18 @@
 
             <div class="collapse navbar-collapse" id="navbarSupportedContent">
                 <ul class="navbar-nav  ">
-                    <li class="nav-item active">
+                    <li class="nav-item" th:classappend="${currentPath == '/'} ? 'active'">
                         <a class="nav-link" href="/"> Главная <span class="sr-only">(current)</span></a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item" th:classappend="${currentPath == '/products'} ? 'active'">
                         <a class="nav-link" href="/products"> Каталог </a>
                     </li>
-                    <li class="nav-item">
+                    <li class="nav-item" th:classappend="${currentPath == '/contact-us'} ? 'active'">
                         <a class="nav-link" href="/contact-us">Связаться с нами</a>
                     </li>
                 </ul>
                 <div class="user_optio_box">
-                    <a href="">
-                        <i class="fa fa-user" aria-hidden="true"></i>
-                    </a>
-                    <a href="">
+                    <a href="/order/cart">
                         <i class="fa fa-shopping-cart" aria-hidden="true"></i>
                     </a>
                 </div>
@@ -113,7 +110,7 @@
                     <option th:each="type : ${productTypes}"
                             th:value="${type}"
                             th:selected="${type == selectedType}"
-                            th:text="${productTypeTranslations[type]}"> <!-- Используем словарь для перевода -->
+                            th:text="${type.russianName}"> <!-- Используем перевод из enum -->
                     </option>
                 </select>
             </div>
@@ -153,23 +150,60 @@
                     </div>
                 </div>
                 <div class="btn-box">
-                    <a href="#">Купить</a>
+                    <a href="#" data-toggle="modal" data-target="#addToCartModal"
+                       th:data-product-id="${product.id}"
+                       onclick="setProductId(this)">
+                        Купить
+                    </a>
                 </div>
             </div>
         </div>
     </div>
 </section>
 <!-- end product section -->
+<!-- Модальное окно для добавления товара в корзину -->
+<div class="modal fade" id="addToCartModal" tabindex="-1" role="dialog" aria-labelledby="addToCartModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addToCartModalLabel">Добавить в корзину</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Блок для уведомлений -->
+                <div id="alertMessage" class="alert" style="display: none;"></div>
+
+                <form id="addToCartForm">
+                    <input type="hidden" id="productId" name="productId" value="">
+                    <div class="form-group">
+                        <label for="retailQuantity">Количество для розницы:</label>
+                        <input type="number" class="form-control" id="retailQuantity" name="retailQuantity" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="wholeQuantity">Количество для опта:</label>
+                        <input type="number" class="form-control" id="wholeQuantity" name="wholeQuantity" min="0" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Закрыть</button>
+                <button type="button" class="btn btn-primary" onclick="addToCart()">Добавить в корзину</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Пагинация -->
 <div class="pagination">
-    <a th:if="${currentPage > 0}" th:href="@{/products(page=${currentPage - 1}, size=12)}">Назад</a>
+    <a th:if="${currentPage > 0}" th:href="@{/products(page=${currentPage - 1}, size=12, type=${selectedType})}">Назад</a>
     <a th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
-       th:href="@{/products(page=${i}, size=12)}"
+       th:href="@{/products(page=${i}, size=12, type=${selectedType})}"
        th:class="${i == currentPage} ? 'active'">
         <span th:text="${i + 1}"></span>
     </a>
-    <a th:if="${currentPage < totalPages - 1}" th:href="@{/products(page=${currentPage + 1}, size=12)}">Вперед</a>
+    <a th:if="${currentPage < totalPages - 1}" th:href="@{/products(page=${currentPage + 1}, size=12, type=${selectedType})}">Вперед</a>
 </div>
 
 <!-- Скрипт для фильтрации -->
@@ -276,6 +310,56 @@
     document.querySelectorAll(".product-name").forEach((element) => {
         adjustFontSize(element);
     });
+</script>
+<script>
+    // Функция для передачи ID товара в модальное окно
+    function setProductId(element) {
+        const productId = element.getAttribute("data-product-id");
+        document.getElementById("productId").value = productId;
+    }
+
+    // Функция для отправки данных через AJAX
+    function addToCart() {
+        const form = document.getElementById("addToCartForm");
+        const formData = new FormData(form);
+
+        fetch("/order/add-to-cart", {
+            method: "POST",
+            body: formData
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Показываем уведомление об успешном добавлении
+                    const alertMessage = document.getElementById("alertMessage");
+                    alertMessage.textContent = "Товар добавлен в корзину!";
+                    alertMessage.classList.remove("alert-danger");
+                    alertMessage.classList.add("alert-success");
+                    alertMessage.style.display = "block";
+
+                    // Закрываем модальное окно через 1 секунду
+                    setTimeout(() => {
+                        $('#addToCartModal').modal('hide');
+                        alertMessage.style.display = "none";
+                    }, 1000);
+                } else {
+                    // Показываем сообщение об ошибке
+                    const alertMessage = document.getElementById("alertMessage");
+                    alertMessage.textContent = data.message || "Ошибка при добавлении товара.";
+                    alertMessage.classList.remove("alert-success");
+                    alertMessage.classList.add("alert-danger");
+                    alertMessage.style.display = "block";
+                }
+            })
+            .catch(error => {
+                console.error("Ошибка:", error);
+                const alertMessage = document.getElementById("alertMessage");
+                alertMessage.textContent = "Ошибка при добавлении товара.";
+                alertMessage.classList.remove("alert-success");
+                alertMessage.classList.add("alert-danger");
+                alertMessage.style.display = "block";
+            });
+    }
 </script>
 </body>
 </html>
