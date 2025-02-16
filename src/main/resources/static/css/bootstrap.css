@@ -5815,7 +5815,7 @@ a.close.disabled {
 }
 
 .modal-content {
-  position: relative;
+  position: absolute;
   display: -ms-flexbox;
   display: flex;
   -ms-flex-direction: column;

@@ -79,7 +79,7 @@ a:focus {
 /*header section*/
 .hero_area {
     position: relative;
-    min-height: 100vh;
+    min-height: 100%;
     display: -webkit-box;
     display: -ms-flexbox;
     display: flex;
@@ -1004,7 +1004,7 @@ a:focus {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    margin-left: 30px; /* Отступ для выравнивания с текстом */
+    gap: 100%;
 }
 
 .telegram-managers a {
@@ -1170,6 +1170,7 @@ select#productType {
     appearance: none; /* Убираем стандартный стиль браузера */
     -webkit-appearance: none; /* Для Safari */
     -moz-appearance: none; /* Для Firefox */
+    float: right;
 }
 
 /* Стили для элементов <option> */
@@ -1188,6 +1189,5 @@ select#productType option:checked {
     background-color: #8019c8; /* Цвет фона выбранного элемента */
     color: white; /* Цвет текста выбранного элемента */
 }
-
 
 /*# sourceMappingURL=style.css.map */
