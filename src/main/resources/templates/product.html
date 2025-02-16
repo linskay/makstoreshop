@@ -36,17 +36,23 @@
             justify-content: center;
             margin-top: 20px;
             margin-bottom: 40px; /* Отступ до нижнего блока */
+            flex-wrap: wrap; /* Разрешаем перенос кнопок на новую строку */
+            gap: 5px; /* Отступ между кнопками */
         }
 
         .pagination a {
-            display: inline-block;
-            margin: 0 5px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             padding: 10px 15px;
             background-color: #8019c8; /* Фиолетовый фон */
             color: #ffffff; /* Белый текст */
             border-radius: 5px;
             text-decoration: none;
             transition: all 0.3s ease;
+            font-size: 16px; /* Размер шрифта по умолчанию */
+            min-width: 40px; /* Минимальная ширина кнопки */
+            box-sizing: border-box; /* Учитываем padding в ширине */
         }
 
         .pagination a.active {
@@ -55,6 +61,51 @@
 
         .pagination a:hover:not(.active) {
             background-color: #541184; /* Темно-фиолетовый при наведении */
+        }
+
+        /* Стили для разделителя */
+        .pagination span.pagination-separator {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px 15px;
+            background-color: transparent; /* Прозрачный фон */
+            color: #8019c8; /* Фиолетовый текст */
+            border-radius: 5px;
+            text-decoration: none;
+            cursor: default; /* Убираем курсор-указатель */
+            font-size: 16px; /* Размер шрифта по умолчанию */
+            min-width: 40px; /* Минимальная ширина разделителя */
+            box-sizing: border-box; /* Учитываем padding в ширине */
+        }
+
+        /* Адаптивные стили для мобильных устройств */
+        @media (max-width: 768px) {
+            .pagination a {
+                padding: 8px 12px; /* Уменьшаем отступы */
+                font-size: 14px; /* Уменьшаем размер шрифта */
+                min-width: 35px; /* Уменьшаем минимальную ширину */
+            }
+
+            .pagination span.pagination-separator {
+                padding: 8px 12px; /* Уменьшаем отступы */
+                font-size: 14px; /* Уменьшаем размер шрифта */
+                min-width: 35px; /* Уменьшаем минимальную ширину */
+            }
+        }
+
+        @media (max-width: 480px) {
+            .pagination a {
+                padding: 6px 10px; /* Ещё меньше отступы */
+                font-size: 12px; /* Ещё меньше размер шрифта */
+                min-width: 30px; /* Ещё меньше минимальная ширина */
+            }
+
+            .pagination span.pagination-separator {
+                padding: 6px 10px; /* Ещё меньше отступы */
+                font-size: 12px; /* Ещё меньше размер шрифта */
+                min-width: 30px; /* Ещё меньше минимальная ширина */
+            }
         }
     </style>
 </head>
@@ -104,7 +155,8 @@
             <h2>Все товары</h2>
             <!-- Фильтр по типу товара -->
             <div class="filter-section">
-                <label for="productType">Фильтр по типу:</label>
+                <label for="productType" style="float: right;">Фильтр по типу:</label>
+                <br>
                 <select id="productType" name="productType" onchange="filterProducts()">
                     <option value="">Все товары</option>
                     <option th:each="type : ${productTypes}"
@@ -197,12 +249,27 @@
 
 <!-- Пагинация -->
 <div class="pagination">
+    <!-- Кнопка "Назад" -->
     <a th:if="${currentPage > 0}" th:href="@{/products(page=${currentPage - 1}, size=12, type=${selectedType})}">Назад</a>
-    <a th:each="i : ${#numbers.sequence(0, totalPages - 1)}"
+
+    <!-- Первые три страницы -->
+    <a th:each="i : ${#numbers.sequence(0, 2)}"
        th:href="@{/products(page=${i}, size=12, type=${selectedType})}"
        th:class="${i == currentPage} ? 'active'">
-        <span th:text="${i + 1}"></span>
+        [[${i + 1}]]
     </a>
+
+    <!-- Разделитель "..." -->
+    <span class="pagination-separator" th:if="${totalPages > 5}">...</span>
+
+    <!-- Последние три страницы -->
+    <a th:each="i : ${#numbers.sequence(totalPages - 3, totalPages - 1)}"
+       th:href="@{/products(page=${i}, size=12, type=${selectedType})}"
+       th:class="${i == currentPage} ? 'active'">
+        [[${i + 1}]]
+    </a>
+
+    <!-- Кнопка "Вперед" -->
     <a th:if="${currentPage < totalPages - 1}" th:href="@{/products(page=${currentPage + 1}, size=12, type=${selectedType})}">Вперед</a>
 </div>
 
